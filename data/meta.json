@@ -1,23 +1,49 @@
 {
- "built_utc": "2026-10-14 06:05 UTC",
+ "built_utc": "2026-10-14 06:18 UTC",
  "sources": {
-  "tradingview_calendar": "ok (871 events)",
-  "fred": "ok (14/14 series)"
+  "tradingview_calendar": {
+   "US": 11795,
+   "EU": 2208,
+   "GB": 2108,
+   "JP": 939,
+   "CN": 274,
+   "DE": 775,
+   "CA": 606,
+   "AU": 589,
+   "CH": 192,
+   "NZ": 375
+  },
+  "fred": "ok (14/14)",
+  "cot": "ok (3)",
+  "options": "ok (8)",
+  "walls": "ok (2)"
+ },
+ "countries": {
+  "US": "United States",
+  "EU": "Euro Area",
+  "GB": "United Kingdom",
+  "JP": "Japan",
+  "CN": "China",
+  "DE": "Germany",
+  "CA": "Canada",
+  "AU": "Australia",
+  "CH": "Switzerland",
+  "NZ": "New Zealand"
  },
  "fred_detail": {
-  "CPIAUCNS": "ok",
-  "CPILFENS": "ok",
-  "PCEPI": "ok",
-  "PCEPILFE": "ok",
-  "PPIFIS": "ok",
-  "PAYEMS": "ok",
+  "FEDFUNDS": "ok",
+  "DGS3MO": "ok",
+  "DGS2": "ok",
+  "DGS10": "ok",
+  "DFII10": "ok",
+  "T10YIE": "ok",
+  "DTWEXBGS": "ok",
   "UNRATE": "ok",
   "ICSA": "ok",
-  "A191RL1Q225SBEA": "ok",
-  "FEDFUNDS": "ok",
-  "DGS10": "ok",
-  "DGS2": "ok",
-  "DFII10": "ok",
-  "DTWEXBGS": "ok"
+  "UMCSENT": "ok",
+  "TOTALSA": "ok",
+  "HOUST": "ok",
+  "CSUSHPINSA": "ok",
+  "INDPRO": "ok"
  }
 }

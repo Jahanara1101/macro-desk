@@ -1,72 +1,87 @@
 #!/usr/bin/env node
-/* Headless check of index.html: runs the page's own <script> against the real
-   JSON with a tiny DOM shim, then asserts every section actually rendered.
-   Usage: node scripts/check_page.js  (from the repo root) */
+/* Headless render check: run the page's own <script> against the real data files
+   with a tiny DOM shim, then call render() for EVERY sidebar page and assert none
+   of them fell through to an error/empty placeholder. */
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
-const root = path.resolve(__dirname, '..');
-const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const m = html.match(/<script>([\s\S]*?)<\/script>/);
-if (!m) { console.error('FAIL: no <script> in index.html'); process.exit(1); }
-const code = m[1];
+const REPO = process.argv[2] || '/root/macro-desk';
+const html = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8');
+const script = html.match(/<script>([\s\S]*?)<\/script>/)[1]
+  // top-level const/let in vm.runInContext are lexical, not sandbox props.
+  // getters, not values: boot() REBINDS SERIES/COT/... after its awaits resolve.
+  + '\n;globalThis.__X={get FLAT(){return FLAT},get state(){return state},render,' +
+    'get CAL(){return CAL},get SERIES(){return SERIES},get COT(){return COT},' +
+    'get OPT(){return OPT},get WALLS(){return WALLS},get META(){return META}};';
 
-const els = {};
-function el(id) {
-  if (!els[id]) els[id] = { id, innerHTML: '', textContent: '', value: '',
-                            classList: { add(){}, remove(){} }, dataset: {}, onclick: null, oninput: null };
-  return els[id];
+function El(tag) {
+  return {
+    tagName: tag, innerHTML: '', textContent: '', dataset: {}, style: {},
+    children: [], value: '',
+    classList: { _s: new Set(), add(c){this._s.add(c);}, remove(c){this._s.delete(c);},
+                 toggle(c,f){ f===undefined ? (this._s.has(c)?this._s.delete(c):this._s.add(c)) : (f?this._s.add(c):this._s.delete(c)); },
+                 contains(c){return this._s.has(c);} },
+    querySelector(){ return null; },
+    querySelectorAll(){ return []; },
+    addEventListener(){}, prepend(){}, appendChild(){},
+  };
 }
+const store = {};
 const document = {
-  getElementById: el,
-  querySelectorAll: () => [],
+  querySelector(sel) { return store[sel] || (store[sel] = El('div')); },
+  querySelectorAll() { return []; },
+  getElementById(id) { return store['#' + id] || (store['#' + id] = El('div')); },
+  createElement(t) { return El(t); },
 };
-const store = {
-  'data/calendar.json':   JSON.parse(fs.readFileSync(path.join(root, 'data/calendar.json'))),
-  'data/indicators.json': JSON.parse(fs.readFileSync(path.join(root, 'data/indicators.json'))),
-  'data/meta.json':       JSON.parse(fs.readFileSync(path.join(root, 'data/meta.json'))),
+const sandbox = {
+  document, console,
+  location: { hash: '' },
+  alert() {}, setTimeout, Date, Math, JSON, Object, Array, Number, String, isNaN, parseFloat,
+  Intl,
+  window: { print() {} },
+  fetch: async (u) => {
+    const f = path.join(REPO, u);
+    if (!fs.existsSync(f)) return { ok: false, status: 404, json: async () => ({}) };
+    return { ok: true, status: 200, json: async () => JSON.parse(fs.readFileSync(f, 'utf8')) };
+  },
 };
-const fetch = async (u) => {
-  const k = Object.keys(store).find(x => u.includes(x));
-  if (!k) throw new Error('404 ' + u);
-  return { json: async () => store[k] };
-};
-const setInterval = () => 0;
-const console_ = console;
+sandbox.self = sandbox;
+vm.createContext(sandbox);
+vm.runInContext(script, sandbox, { filename: 'page.js' });
 
 (async () => {
-  const fn = new Function('document', 'fetch', 'setInterval', 'console', code + '\nreturn {renderCards,renderNext,renderRows,boot};');
-  const api = fn(document, fetch, setInterval, console_);
-  await api.boot();
-
-  let bad = 0;
-  const check = (name, html_, min) => {
-    const ok = html_ && html_.length >= min;
-    console.log(`${ok ? 'OK  ' : 'FAIL'} ${name.padEnd(14)} ${html_.length} chars`);
-    if (!ok) bad++;
-  };
-  check('cards',      el('cards').innerHTML, 500);
-  check('next',       el('next').innerHTML, 500);
-  check('rows',       el('rows').innerHTML, 2000);
-  check('stamp',      el('stamp').innerHTML, 10);
-
-  const rows = el('rows').innerHTML;
-  for (const [tag, want] of [['tag hot', 'HOT'], ['tag cool', 'COOL'], ['tag same', 'ON TARGET']]) {
-    const has = rows.includes(want) || el('next').innerHTML.includes(want);
-    console.log(`${has ? 'OK  ' : 'FAIL'} badge ${want}`);
-    if (!has) bad++;
+  for (let i = 0; i < 80; i++) {
+    if (sandbox.__X && sandbox.__X.META && sandbox.__X.SERIES.length) break;
+    await new Promise(r => setTimeout(r, 100));
   }
-  const n = (rows.match(/<tr>/g) || []).length;
-  console.log(`     table rows rendered: ${n}`);
-  if (n < 20) { console.log('FAIL too few rows'); bad++; }
-
-  // spot-check a known event against the raw JSON
-  const cal = store['data/calendar.json'];
-  const cpi = cal.find(e => e.title === 'Core Inflation Rate YoY' && e.actual !== null);
-  if (cpi) {
-    const inPage = rows.includes(cpi.title);
-    console.log(`${inPage ? 'OK  ' : 'WARN'} Core Inflation Rate YoY present (actual ${cpi.actual} vs fc ${cpi.forecast})`);
+  const X = sandbox.__X;
+  const dump = (process.argv[3] || '').replace('--dump=', '');
+  if (dump) {
+    X.state.page = dump;
+    X.render();
+    const h = (store['#body'].innerHTML || '')
+      .replace(/<svg[\s\S]*?<\/svg>/g, '[CHART]')
+      .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+    console.log('=== ' + dump + ' ===\n' + h.slice(0, 1400));
+    return;
   }
-  console.log(bad ? `\n${bad} CHECK(S) FAILED` : '\nALL CHECKS PASSED');
-  process.exit(bad ? 1 : 0);
+  const bad = [];
+  const pages = X.FLAT.map(p => p.id);
+  for (const id of pages) {
+    X.state.page = id;
+    try { X.render(); }
+    catch (e) { bad.push([id, 'THREW ' + e.message]); continue; }
+    const h = store['#body'].innerHTML || '';
+    const err = h.match(/class="load"[^>]*>([\s\S]{0,90})/);
+    if (err) bad.push([id, 'placeholder: ' + err[1].replace(/\s+/g, ' ').trim()]);
+    else if (h.length < 120) bad.push([id, 'suspiciously short (' + h.length + ' chars)']);
+  }
+  console.log('pages checked:', pages.length);
+  console.log('data: series=' + X.SERIES.length + ' cot=' + X.COT.length +
+              ' walls=' + X.WALLS.length + ' opt=' + (X.OPT ? 'yes' : 'no') +
+              ' cal_us=' + ((X.CAL || {}).cal_us || []).length);
+  if (bad.length) { console.log('FAILURES:'); bad.forEach(b => console.log('  ' + b[0] + ' -> ' + b[1])); process.exit(1); }
+  console.log('ALL PAGES RENDER OK');
 })();

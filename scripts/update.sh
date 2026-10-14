@@ -7,7 +7,7 @@ cd "$REPO" || exit 1
 
 python3 scripts/fetch_macro.py >/tmp/macro_fetch.log 2>&1 || { echo "fetch failed"; exit 1; }
 
-git add data >/dev/null 2>&1
+git add -A >/dev/null 2>&1
 if git diff --cached --quiet; then
   exit 0                      # nothing changed — stay silent
 fi

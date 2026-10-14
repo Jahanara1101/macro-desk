@@ -3,281 +3,647 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Macro Desk — US অর্থনীতির খবর</title>
+<title>Macro Desk — US Economic Data</title>
 <style>
-  :root{
-    --bg:#0b0d11; --panel:#12151c; --panel2:#171b24; --line:#242a36;
-    --txt:#e6e9ef; --dim:#8b93a7; --dim2:#5d6478;
-    --hot:#ff5d5d; --cool:#3ddc97; --neut:#7c869c;
-    --gold:#f0b429; --blue:#4da3ff;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);
-       font-family:"Noto Sans Bengali","Segoe UI",system-ui,-apple-system,sans-serif;
-       font-size:15px;line-height:1.55}
-  a{color:var(--blue);text-decoration:none}
-  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
+:root{
+  --bg:#1b1f2b; --panel:#232838; --panel2:#2a3044; --side:#171b25;
+  --line:#333a4d; --txt:#d1d4dc; --mut:#7f8699; --dim:#5a6172;
+  --blue:#3b82f6; --red:#ef4444; --green:#10b981; --amber:#f59e0b; --violet:#8b5cf6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Bengali",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none}
+.app{display:flex;min-height:100vh}
 
-  header{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;
-         border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:18px}
-  h1{font-size:21px;margin:0;font-weight:700}
-  h1 span{color:var(--gold)}
-  .stamp{color:var(--dim);font-size:12.5px;margin-left:auto;text-align:right}
-  .stamp b{color:var(--cool);font-weight:600}
+/* ---------------- sidebar ---------------- */
+.side{width:238px;flex:0 0 238px;background:var(--side);border-right:1px solid var(--line);
+  position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:24px}
+.brand{display:flex;align-items:center;gap:9px;padding:15px 16px 13px;border-bottom:1px solid var(--line)}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex:0 0 9px}
+.brand b{font-size:14px;letter-spacing:.3px}
+.brand span{color:var(--mut);font-size:10.5px;display:block;letter-spacing:.6px;text-transform:uppercase}
+.grp{padding:15px 16px 5px;color:var(--dim);font-size:10px;letter-spacing:1.1px;font-weight:600;text-transform:uppercase}
+.nav{display:flex;align-items:center;gap:9px;padding:8px 16px;color:var(--txt);cursor:pointer;
+  border-left:2px solid transparent;font-size:12.6px;user-select:none}
+.nav:hover{background:#1e2330}
+.nav.on{background:#222838;border-left-color:var(--blue);color:#fff}
+.nav .ic{width:15px;text-align:center;color:var(--mut);font-size:12px;flex:0 0 15px}
+.nav.on .ic{color:var(--blue)}
+.nav .caret{margin-left:auto;color:var(--dim);font-size:9px;transition:transform .15s}
+.nav.open .caret{transform:rotate(90deg)}
+.sub{display:none}
+.sub.show{display:block}
+.sub .nav{padding-left:40px;font-size:12.2px;color:var(--mut)}
+.sub .nav.on{color:#fff}
 
-  h2{font-size:15px;margin:26px 0 10px;color:var(--gold);font-weight:700;
-     text-transform:uppercase;letter-spacing:.6px}
-  h2 small{color:var(--dim2);text-transform:none;letter-spacing:0;font-weight:400;font-size:12px}
-
-  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:11px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 13px}
-  .card .k{color:var(--dim);font-size:12px;margin-bottom:5px}
-  .card .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
-  .card .d{font-size:12px;color:var(--dim2);margin-top:3px;font-variant-numeric:tabular-nums}
-  .card .spark{margin-top:7px;display:block}
-  .up{color:var(--hot)} .down{color:var(--cool)} .flat{color:var(--neut)}
-
-  /* upcoming release strip */
-  .next{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:11px}
-  .ev{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--gold);
-      border-radius:9px;padding:11px 12px}
-  .ev.past{border-left-color:var(--dim2);opacity:.72}
-  .ev .t{font-weight:600;font-size:14px;margin-bottom:2px}
-  .ev .when{color:var(--dim);font-size:12px;margin-bottom:7px}
-  .ev .row{display:flex;gap:14px;font-size:13px;font-variant-numeric:tabular-nums}
-  .ev .row span{color:var(--dim);font-size:11px;display:block}
-  .ev .row b{font-weight:700}
-  .cd{color:var(--gold);font-weight:600}
-
-  /* table */
-  .bar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:10px}
-  button{background:var(--panel);color:var(--txt);border:1px solid var(--line);
-         border-radius:20px;padding:5px 13px;font-size:13px;cursor:pointer;font-family:inherit}
-  button.on{background:var(--gold);color:#101216;border-color:var(--gold);font-weight:700}
-  input{background:var(--panel);border:1px solid var(--line);color:var(--txt);
-        border-radius:20px;padding:6px 13px;font-size:13px;font-family:inherit;min-width:150px}
-  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
-  table{width:100%;border-collapse:collapse;font-size:13.5px}
-  th{background:var(--panel2);color:var(--dim);text-align:left;padding:9px 11px;
-     font-weight:600;font-size:12px;white-space:nowrap;position:sticky;top:0}
-  td{padding:8px 11px;border-top:1px solid var(--line);white-space:nowrap;
-     font-variant-numeric:tabular-nums}
-  tr:hover td{background:#151922}
-  td.ttl{white-space:normal;min-width:190px}
-  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px}
-  .i1{background:var(--hot)} .i0{background:var(--gold)} .im{background:var(--dim2)}
-  .tag{font-size:11px;padding:1px 7px;border-radius:20px;font-weight:700;margin-left:6px}
-  .tag.hot{background:rgba(255,93,93,.16);color:var(--hot)}
-  .tag.cool{background:rgba(61,220,151,.16);color:var(--cool)}
-  .tag.same{background:rgba(124,134,156,.16);color:var(--neut)}
-  .pend{color:var(--dim2)}
-
-  footer{margin-top:34px;border-top:1px solid var(--line);padding-top:14px;
-         color:var(--dim2);font-size:12px;line-height:1.7}
-  .note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--blue);
-        border-radius:9px;padding:11px 13px;color:var(--dim);font-size:12.5px;margin-top:22px}
-  .err{color:var(--hot)}
-  @media(max-width:560px){.card .v{font-size:19px} h1{font-size:18px}}
+/* ---------------- main ---------------- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{display:flex;align-items:flex-start;gap:14px;padding:16px 20px 12px;border-bottom:1px solid var(--line);
+  background:var(--panel);flex-wrap:wrap}
+.top h1{font-size:16px;font-weight:600;display:flex;align-items:center;gap:7px}
+.q{width:15px;height:15px;border-radius:50%;background:#2f374a;color:var(--mut);font-size:10px;
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 15px}
+.ctl{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+select{background:#2a3044;color:var(--txt);border:1px solid var(--line);border-radius:6px;
+  padding:6px 9px;font-size:12px;font-family:inherit;cursor:pointer}
+.src{padding:7px 20px;color:var(--dim);font-size:11px;border-bottom:1px solid var(--line)}
+.body{padding:18px 20px 40px;flex:1}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:16px}
+.load{color:var(--mut);padding:40px;text-align:center}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px;font-size:11.5px;color:var(--mut);align-items:center}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.legend .ln{width:16px;height:0;border-top:2px solid var(--red);display:inline-block;margin-right:6px;vertical-align:3px}
+.legend .ln.t{border-top:2px dashed var(--green)}
+.chartwrap{width:100%;overflow:hidden}
+svg{display:block;width:100%;height:auto}
+.info{display:none;margin-bottom:14px;padding:13px 15px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:8px;font-size:12.3px;color:#b9bdca;line-height:1.6}
+.info.show{display:block}
+.info h3{font-size:12.5px;color:#fff;margin-bottom:6px}
+.about{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}
+.about h2{font-size:14px;margin-bottom:9px}
+.about p{color:#a9aebd;font-size:12.6px;line-height:1.65;margin-bottom:11px}
+.btns{display:flex;gap:9px;flex-wrap:wrap}
+.btn{background:#2f374a;border:1px solid var(--line);color:var(--txt);border-radius:6px;
+  padding:7px 13px;font-size:12px;cursor:pointer;font-family:inherit}
+.btn:hover{background:#39415a}
+.btn.p{background:var(--blue);border-color:var(--blue);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px}
+.kpi{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:13px 14px}
+.kpi .lb{color:var(--mut);font-size:11.2px;margin-bottom:5px;display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.kpi .vl{font-size:22px;font-weight:600;letter-spacing:-.4px}
+.kpi .dt{color:var(--dim);font-size:10.5px;margin-top:4px}
+.up{color:var(--green)} .dn{color:var(--red)} .fl{color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:12.3px}
+th{text-align:left;color:var(--mut);font-weight:600;font-size:11px;letter-spacing:.4px;
+  text-transform:uppercase;padding:8px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 9px;border-bottom:1px solid #2a2f40;vertical-align:middle}
+tr:hover td{background:#252b3c}
+.tag{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;white-space:nowrap}
+.tag.hot{background:rgba(239,68,68,.16);color:#f87171}
+.tag.cool{background:rgba(16,185,129,.16);color:#34d399}
+.tag.on{background:rgba(127,134,153,.16);color:#9aa1b3}
+.tag.hi{background:rgba(245,158,11,.16);color:#fbbf24}
+.bar{height:6px;border-radius:3px;background:#2f374a;overflow:hidden;min-width:60px}
+.bar i{display:block;height:100%}
+.hm{display:grid;gap:3px;font-size:11px}
+.hm .c{padding:7px 6px;border-radius:4px;text-align:center;color:#0b0e14;font-weight:600}
+.hm .hd{background:#232838;color:#9aa1b3;font-weight:600}
+.hm .rl{background:#232838;color:#b9bdca;text-align:left;font-weight:400}
+.note{color:var(--mut);font-size:11.5px;margin-top:12px;line-height:1.6}
+.hint{color:var(--dim);font-size:11px}
+@media(max-width:820px){
+  .app{flex-direction:column}
+  .side{width:100%;flex:none;height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}
+  .sub .nav{padding-left:34px}
+  .body{padding:14px}
+  .top{padding:13px 14px 11px}
+  .top h1{font-size:14.5px}
+  .hm{font-size:9.5px}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-
-  <header>
-    <h1>Macro Desk <span>·</span> US অর্থনীতির খবর</h1>
-    <div class="stamp" id="stamp">লোড হচ্ছে…</div>
-  </header>
-
-  <h2>পরের বড় রিলিজ <small>— যেগুলো বাজারে ধাক্কা দেয়</small></h2>
-  <div class="next" id="next"></div>
-
-  <h2>মূল সংখ্যাগুলো <small>— সর্বশেষ রিডিং</small></h2>
-  <div class="cards" id="cards"></div>
-
-  <h2>ক্যালেন্ডার <small>— actual বনাম forecast</small></h2>
-  <div class="bar">
-    <button class="on" data-f="hi">শুধু বড় নিউজ</button>
-    <button data-f="all">সব</button>
-    <button data-f="done">যা হয়ে গেছে</button>
-    <button data-f="pending">যা বাকি</button>
-    <input id="q" placeholder="খুঁজো… CPI, NFP, GDP">
-  </div>
-  <div class="tblwrap">
-    <table>
-      <thead><tr>
-        <th>সময়</th><th>নিউজ</th><th>Period</th>
-        <th>Actual</th><th>Forecast</th><th>Previous</th><th>বনাম Forecast</th>
-      </tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-  </div>
-
-  <div class="note">
-    <b>কীভাবে পড়বে:</b> 🔴 <b>HOT</b> = forecast-এর চেয়ে বেশি (inflation-এ এটা hawkish ⇒ ডলার↑ / গোল্ড↓) ·
-    🟢 <b>COOL</b> = forecast-এর চেয়ে কম · ⚪ <b>ON TARGET</b> = মিলে গেছে।
-    সময়গুলো <b>UTC</b>-এ; ঢাকার জন্য <b>+৬ ঘণ্টা</b> যোগ করো।
-  </div>
-
-  <footer>
-    <div id="srcs">—</div>
-    <div style="margin-top:8px">
-      ডেটা: TradingView economic calendar (US) · FRED (St. Louis Fed)।
-      সব keyless পাবলিক এন্ডপয়েন্ট, কোনো API key লাগে না।
+<div class="app">
+  <aside class="side" id="side"></aside>
+  <main class="main">
+    <div class="top">
+      <h1><span id="ttl">Consumer Price Index, Year on Year</span>
+        <span class="q" id="qbtn" title="এই গ্রাফটা কী দেখাচ্ছে">?</span></h1>
+      <div class="ctl">
+        <select id="ctry" title="Country"></select>
+        <select id="rng" title="Date range"></select>
+      </div>
     </div>
-    <div style="margin-top:8px">
-      ⚠️ এটা তথ্যের সাইট, বিনিয়োগ পরামর্শ নয়। কোনো entry/SL/TP এখানে নেই — এটা signal নয়, শুধু নিউজ আর ডেটা।
-    </div>
-  </footer>
+    <div class="src" id="src"></div>
+    <div class="body" id="body"><div class="load">লোড হচ্ছে…</div></div>
+  </main>
 </div>
 
 <script>
-const UTC2DHAKA = 6;
-const fmtN = v => (v === null || v === undefined) ? '—'
-  : (Math.abs(v) >= 1000 ? v.toLocaleString('en-US',{maximumFractionDigits:2})
-                         : (Number.isInteger(v) ? v : v.toFixed(2)));
+/* =====================================================================
+   Macro Desk — a US macro / economic-data desk.
+   Data: TradingView economic calendar, FRED, CFTC, CBOE, FastBull.
+   Numbers and news only — no signals, no entries, no SL/TP.
+   ===================================================================== */
+const COUNTRIES=[["US","USD 🇺🇸 United States"],["EU","EUR 🇪🇺 Euro Area"],["GB","GBP 🇬🇧 United Kingdom"],
+  ["JP","JPY 🇯🇵 Japan"],["CN","CNY 🇨🇳 China"],["DE","EUR 🇩🇪 Germany"],["CA","CAD 🇨🇦 Canada"],
+  ["AU","AUD 🇦🇺 Australia"],["CH","CHF 🇨🇭 Switzerland"],["NZ","NZD 🇳🇿 New Zealand"]];
+const RANGES=[["12","Last 12 releases"],["24","Last 24 releases"],["36","Last 36 releases"],["all","All history"]];
 
-// inflation-type: higher than forecast = hawkish (bad for gold)
-const INFL = /inflation|CPI|PPI|PCE|price index|earnings|wages/i;
-const WEAK = /unemployment|jobless|claims|layoff|job cuts/i;
+/* G(id, sidebar label, TradingView event title, opts)
+   opts.title overrides the chart heading (what shows in the header bar). */
+const G=(id,label,ev,o={})=>Object.assign(
+  {id,label,ev,title:o.title||ev,kind:"cal",unit:o.unit||"%",target:o.target,
+   about:o.about||"",dec:o.dec===undefined?2:o.dec},o);
 
-function polarity(title){
-  if (WEAK.test(title)) return 'inverse';   // higher = weaker
-  if (INFL.test(title)) return 'hot';       // higher = hotter inflation
-  return 'strong';                          // higher = stronger economy
+const PAGES=[
+ {group:"",items:[{id:"home",label:"Desk Home",ic:"▤",kind:"home"}]},
+ {group:"Sentiment & Positioning",items:[
+   {id:"cot",label:"COT Report",ic:"◧",kind:"cot"},
+   {id:"retail",label:"Retail Sentiment",ic:"◑",kind:"walls"},
+   {id:"pc",label:"Put/Call Ratio",ic:"◔",kind:"pc"},
+   {id:"netvol",label:"Net Options Volume",ic:"▥",kind:"netvol"},
+   {id:"optwalls",label:"Put & Call Walls",ic:"▦",kind:"wallschart"},
+ ]},
+ {group:"Macro",items:[
+   {id:"scanners",label:"Macro Scanners",ic:"⌗",kind:"scanners"},
+   {id:"heatmap",label:"Economic Heatmap",ic:"▩",kind:"heatmap"},
+   {id:"tops",label:"Top Setups",ic:"★",kind:"tops"},
+   {id:"calendar",label:"Economic Calendar",ic:"▤",kind:"calendar"},
+ ]},
+ {group:"Economic Data",items:[
+   {id:"growth",label:"Economic Growth Data",ic:"▸",children:[
+     G("gdp","GDP Growth Rate QoQ (Adv)","GDP Growth Rate QoQ Adv",{title:"GDP Growth Rate, Quarter on Quarter",about:"GDP-র অগ্রিম (Advance) অনুমান — ত্রৈমাসিক বার্ষিক হারে। তিন দফায় আসে: Adv → 2nd Est → Final। প্রথমটাই বাজারে সবচেয়ে বেশি নড়াচড়া করে।"}),
+     G("gdpf","GDP Growth Rate QoQ (Final)","GDP Growth Rate QoQ Final"),
+     G("retail","Retail Sales MoM","Retail Sales MoM",{about:"খুচরা বিক্রির মাসিক পরিবর্তন — আমেরিকান ভোক্তার খরচের প্রধান পরিমাপ। ভোক্তা GDP-র ~৬৮%, তাই এটা বড় সংখ্যা।"}),
+     G("ismm","ISM Manufacturing PMI","ISM Manufacturing PMI",{unit:"idx",target:50,dec:1,about:"50-এর উপরে = ম্যানুফ্যাকচারিং সম্প্রসারণ, নিচে = সংকোচন। 50-এর লাইনটাই এখানে টার্গেট লাইন।"}),
+     G("isms","ISM Services PMI","ISM Services PMI",{unit:"idx",target:50,dec:1,about:"সার্ভিস সেক্টর US অর্থনীতির ~৭০%। 50-এর উপরে/নিচে দেখে চাহিদার গতি বোঝা যায়।"}),
+     G("dur","Durable Goods Orders MoM","Durable Goods Orders MoM"),
+     G("trade","Balance of Trade","Balance of Trade",{unit:"B",dec:1}),
+     G("indpro","Industrial Production MoM","Industrial Production MoM"),
+     G("cb","CB Consumer Confidence","CB Consumer Confidence",{unit:"idx",dec:1}),
+     G("mich","Michigan Consumer Sentiment","Michigan Consumer Sentiment Prel",{unit:"idx",dec:1}),
+   ]},
+   {id:"inflation",label:"Inflation Data",ic:"▸",children:[
+     G("cpi","CPI YoY","Inflation Rate YoY",{title:"Consumer Price Index, Year on Year",target:2,
+       about:"CPI-র বার্ষিক (Year-over-Year) পরিবর্তন — মুদ্রাস্ফীতির প্রধান পরিমাপ। Fed-এর লক্ষ্য ~২%। বাজারের প্রত্যাশার চেয়ে গরম CPI এলে বন্ড ইল্ড ও ডলার ওঠে, সোনা চাপে পড়ে; ঠান্ডা CPI-তে উল্টো।"}),
+     G("cpic","Core CPI YoY","Core Inflation Rate YoY",{title:"Core CPI, Year on Year",target:2,
+       about:"খাদ্য ও জ্বালানি বাদ দিয়ে CPI — অস্থির জিনিস বাদ দিলে আসল প্রবণতা দেখা যায়।"}),
+     G("cpim","CPI MoM","Inflation Rate MoM",{title:"Consumer Price Index, Month on Month",target:0.2}),
+     G("cpicm","Core CPI MoM","Core Inflation Rate MoM",{title:"Core CPI, Month on Month",target:0.2}),
+     G("ppi","PPI YoY","PPI YoY",{title:"PPI, Year on Year (Final Demand)",target:2,
+       about:"উৎপাদক পর্যায়ের দাম — CPI-র সামনের সূচক। কারখানার দাম বাড়লে কিছু মাস পরে ভোক্তার কাছে পৌঁছায়।"}),
+     G("ppic","Core PPI YoY","Core PPI YoY",{title:"Core PPI, Year on Year"}),
+     G("ppim","PPI MoM","PPI MoM",{title:"PPI, Month on Month",target:0.2}),
+     G("pce","PCE YoY","PCE Price Index YoY",{title:"PCE Price Index, Year on Year",target:2,
+       about:"Fed-এর সবচেয়ে প্রিয় মুদ্রাস্ফীতি মাপকাঠি — ২% টার্গেট এটারই উপর। CPI-র চেয়ে পরে আসে।"}),
+     G("pcec","Core PCE YoY","Core PCE Price Index YoY",{title:"Core PCE Price Index, Year on Year",target:2,
+       about:"খাদ্য-জ্বালানি বাদে PCE — Fed-এর policy-র মূল সংখ্যা।"}),
+     G("pcecm","Core PCE MoM","Core PCE Price Index MoM",{title:"Core PCE Price Index, Month on Month",target:0.2}),
+   ]},
+   {id:"labor",label:"Labor Market Data",ic:"▸",children:[
+     G("nfp","Non Farm Payrolls","Non Farm Payrolls",{unit:"K",dec:0,
+       about:"প্রতি মাসে কত নতুন চাকরি তৈরি হলো (হাজার)। বেকারত্বের হারের সাথে একদিনেই বেরোয়। শক্তিশালী NFP = ডলার শক্ত, সোনা চাপে; দুর্বল = উল্টো।"}),
+     G("adp","ADP Employment Change","ADP Employment Change",{unit:"K",dec:0,
+       about:"বেসরকারি বেতন-তালিকার ভিত্তিতে ADP-র অনুমান — NFP-র দুই দিন আগে আসে। NFP-র নির্ভরযোগ্য পূর্বাভাস নয়।"}),
+     G("unemp","Unemployment Rate","Unemployment Rate",{unit:"%",dec:1,
+       about:"বেকারত্বের হার। Fed-এর দ্বৈত ম্যান্ডেটের দ্বিতীয় অংশ (মুদ্রাস্ফীতি + কর্মসংস্থান)।"}),
+     G("claims","Initial Jobless Claims","Initial Jobless Claims",{unit:"K",dec:0,
+       about:"সাপ্তাহিক নতুন বেকার-ভাতার আবেদন — শ্রমবাজারের সবচেয়ে দ্রুত সূচক। প্রতি বৃহস্পতিবার।"}),
+     G("cclaims","Continuing Jobless Claims","Continuing Jobless Claims",{unit:"K",dec:0}),
+   ]},
+   {id:"rates",label:"Interest Rates & Yields",ic:"▸",children:[
+     G("fed","Fed Interest Rate Decision","Fed Interest Rate Decision",{title:"Fed Interest Rate Decision",
+       about:"FOMC-র সুদের হার সিদ্ধান্ত। সোনার জন্য সবচেয়ে বড় ড্রাইভার — হার বাড়লে সোনার সুযোগ-খরচ বাড়ে।"}),
+     {id:"fedf",label:"Fed Funds Rate",kind:"line",series:"FEDFUNDS",title:"Effective Federal Funds Rate",unit:"%"},
+     {id:"y2",label:"2-Year Treasury",kind:"line",series:"DGS2",title:"2-Year Treasury Yield",unit:"%"},
+     {id:"y10",label:"10-Year Treasury",kind:"line",series:"DGS10",title:"10-Year Treasury Yield",unit:"%"},
+     {id:"ry",label:"10Y Real Yield",kind:"line",series:"DFII10",title:"10-Year Real Yield (TIPS)",unit:"%",
+       about:"নামমাত্র ইল্ড বিয়োগ প্রত্যাশিত মুদ্রাস্ফীতি = আসল ইল্ড। সোনার সাথে এর সম্পর্ক সবচেয়ে নেগেটিভ — আসল ইল্ড বাড়লে সোনা কমে।"},
+     {id:"be",label:"10Y Breakeven Inflation",kind:"line",series:"T10YIE",title:"10-Year Breakeven Inflation Rate",unit:"%"},
+     {id:"dxy",label:"US Dollar Index",kind:"line",series:"DTWEXBGS",title:"Broad US Dollar Index",unit:"idx"},
+   ]},
+   {id:"housing",label:"Housing & Consumer",ic:"▸",children:[
+     G("hstart","Housing Starts","Housing Starts",{unit:"K",dec:0}),
+     G("permits","Building Permits","Building Permits Prel",{unit:"K",dec:0}),
+     G("ehs","Existing Home Sales","Existing Home Sales",{unit:"M",dec:2}),
+     G("nahb","NAHB Housing Market Index","NAHB Housing Market Index",{unit:"idx",dec:0}),
+     {id:"cshp",label:"Case-Shiller Home Price",kind:"line",series:"CSUSHPINSA",title:"Case-Shiller Home Price Index",unit:"idx"},
+     {id:"umc",label:"Consumer Confidence (U.Mich)",kind:"line",series:"UMCSENT",title:"Consumer Confidence — University of Michigan",unit:"idx"},
+     {id:"indp",label:"Industrial Production",kind:"line",series:"INDPRO",title:"Industrial Production Index",unit:"idx"},
+   ]},
+ ]},
+];
+const FLAT=[];
+PAGES.forEach(g=>g.items.forEach(it=>{
+  if(it.children)it.children.forEach(c=>FLAT.push(c));
+  else FLAT.push(it);}));
+const byId=id=>FLAT.find(p=>p.id===id)||FLAT[0];
+
+let CAL={},SERIES=[],COT=[],OPT=null,WALLS=[],META=null;
+const state={page:"cpi",country:"US",range:"24"};
+const $=s=>document.querySelector(s);
+const loadCache={};
+async function J(u){
+  if(loadCache[u])return loadCache[u];
+  const r=await fetch(u);if(!r.ok)throw new Error(u+" HTTP "+r.status);
+  const j=await r.json();loadCache[u]=j;return j;}
+async function cal(c){const k="cal_"+c.toLowerCase();if(CAL[k])return CAL[k];
+  try{CAL[k]=await J("data/"+k+".json");}catch(e){CAL[k]=[];}return CAL[k];}
+
+/* ---------------- number helpers ---------------- */
+const n=v=>v===null||v===undefined||v===""||isNaN(v)?null:+v;
+function fmtPlain(v,unit,dec){
+  const x=n(v);if(x===null)return "—";
+  if(unit==="idx")return x.toFixed(dec===undefined?1:dec);
+  if(unit==="K")return (x>0?"+":"")+x.toLocaleString(undefined,{maximumFractionDigits:0})+"K";
+  if(unit==="B")return x.toFixed(dec===undefined?1:dec)+"B";
+  if(unit==="M")return x.toFixed(dec===undefined?2:dec)+"M";
+  return x.toFixed(dec===undefined?2:dec);}
+const dOnly=s=>s?s.slice(0,10):"";
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const dShort=s=>{const p=dOnly(s).split("-");return p.length<3?"":p[2]+" "+MON[+p[1]-1]+" "+p[0].slice(2);};
+const dLong=s=>{const p=dOnly(s).split("-");return p.length<3?"":+p[2]+" "+MON[+p[1]-1]+" "+p[0];};
+const dhaka=s=>{if(!s)return"";return new Date(s).toLocaleString("en-GB",{timeZone:"Asia/Dhaka",
+  day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});};
+
+/* ---------------- chart engine (SVG) ---------------- */
+function chart(rows,opt){
+  const o=Object.assign({w:960,h:340,unit:"%",dec:2,target:null,showLabels:false,
+    upCol:"#3b82f6",downCol:"#ef4444"},opt);
+  if(!rows.length)return '<div class="load">এই ইন্ডিকেটরের জন্য কোনো ডেটা পাওয়া যায়নি।</div>';
+  const pad={l:52,r:22,t:22,b:52},W=o.w,H=o.h,iw=W-pad.l-pad.r,ih=H-pad.t-pad.b;
+  const vals=[];
+  rows.forEach(r=>{const a=n(r.actual),f=n(r.forecast);if(a!==null)vals.push(a);if(f!==null)vals.push(f);});
+  if(o.target!==null&&o.target!==undefined)vals.push(o.target);
+  if(!vals.length)return '<div class="load">কোনো সংখ্যা নেই।</div>';
+  let lo=Math.min(...vals),hi=Math.max(...vals);
+  if(o.base0)lo=Math.min(lo,0);
+  const sp=(hi-lo)||Math.abs(hi)||1;lo-=sp*0.16;hi+=sp*0.16;
+  const y=v=>pad.t+ih-(v-lo)/(hi-lo)*ih;
+  const step=iw/Math.max(rows.length,1),bw=Math.max(3,Math.min(30,step*0.62));
+  const x=i=>pad.l+step*i+step/2;
+  let g="";
+  for(let k=0;k<=5;k++){const v=lo+(hi-lo)*k/5,yy=y(v);
+    g+=`<line x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}" stroke="#2a3044"/>`;
+    g+=`<text x="${pad.l-8}" y="${yy+3.5}" fill="#7f8699" font-size="10" text-anchor="end">${fmtPlain(v,o.unit,o.dec)}</text>`;}
+  rows.forEach((r,i)=>{
+    const a=n(r.actual);if(a===null)return;
+    const f=n(r.forecast);
+    let col="#4b5569";
+    if(f!==null&&a>f)col=o.upCol;else if(f!==null&&a<f)col=o.downCol;
+    const y0=y(Math.max(a,lo)),y1=y(Math.min(a,hi));
+    const top=Math.min(y0,y1),hh=Math.max(1.5,Math.abs(y1-y0));
+    g+=`<rect x="${x(i)-bw/2}" y="${top}" width="${bw}" height="${hh}" fill="${col}" rx="1.5">`+
+       `<title>${dLong(r.date)}${r.period?" ("+r.period+")":""} — actual ${fmtPlain(a,o.unit,o.dec)}`+
+       `${f!==null?" · forecast "+fmtPlain(f,o.unit,o.dec):""}</title></rect>`;
+    if(o.showLabels&&rows.length<=30)
+      g+=`<text x="${x(i)}" y="${top-5}" fill="#9aa1b3" font-size="9.5" text-anchor="middle">${fmtPlain(a,o.unit,o.dec)}</text>`;});
+  const pts=rows.map((r,i)=>n(r.forecast)===null?null:[x(i),y(n(r.forecast))]).filter(Boolean);
+  if(pts.length>1){
+    g+=`<polyline points="${pts.map(p=>p[0]+","+p[1]).join(" ")}" fill="none" stroke="#ef4444" stroke-width="1.8"/>`;
+    if(rows.length<=36)pts.forEach(p=>{g+=`<circle cx="${p[0]}" cy="${p[1]}" r="2.6" fill="#ef4444"/>`;});}
+  if(o.target!==null&&o.target!==undefined&&o.target>=lo&&o.target<=hi){
+    const ty=y(o.target);
+    g+=`<line x1="${pad.l}" y1="${ty}" x2="${W-pad.r}" y2="${ty}" stroke="#10b981" stroke-width="1.6" stroke-dasharray="6 5"/>`;
+    g+=`<text x="${W-pad.r-2}" y="${ty-6}" fill="#10b981" font-size="10" text-anchor="end">${o.targetLabel||"Target"} ${fmtPlain(o.target,o.unit,o.dec)}</text>`;}
+  const every=Math.max(1,Math.ceil(rows.length/12));
+  rows.forEach((r,i)=>{if(i%every)return;
+    g+=`<text x="${x(i)}" y="${H-26}" fill="#7f8699" font-size="9.5" text-anchor="middle">${dShort(r.date)}</text>`;
+    if(r.period)g+=`<text x="${x(i)}" y="${H-13}" fill="#5a6172" font-size="8.5" text-anchor="middle">${String(r.period).slice(0,7)}</text>`;});
+  if(lo<0&&hi>0){const zy=y(0);g+=`<line x1="${pad.l}" y1="${zy}" x2="${W-pad.r}" y2="${zy}" stroke="#4b5569"/>`;}
+  g+=`<line x1="${pad.l}" y1="${pad.t+ih}" x2="${W-pad.r}" y2="${pad.t+ih}" stroke="#333a4d"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
 }
-function verdict(title, actual, forecast){
-  if (actual === null || actual === undefined || forecast === null || forecast === undefined) return null;
-  const d = actual - forecast;
-  if (Math.abs(d) < 1e-9) return {k:'same', t:'ON TARGET'};
-  const p = polarity(title);
-  if (p === 'hot')    return d > 0 ? {k:'hot',  t:'HOT'}  : {k:'cool', t:'COOL'};
-  if (p === 'inverse')return d > 0 ? {k:'cool', t:'WEAK'} : {k:'hot',  t:'TIGHT'};
-  return d > 0 ? {k:'cool', t:'STRONG'} : {k:'hot', t:'SOFT'};
+function lineChart(hist,opt){
+  const o=Object.assign({w:960,h:340,unit:"%",dec:2},opt);
+  if(!hist||hist.length<2)return '<div class="load">ডেটা নেই।</div>';
+  const pad={l:54,r:22,t:20,b:44},W=o.w,H=o.h,iw=W-pad.l-pad.r,ih=H-pad.t-pad.b;
+  const vs=hist.map(r=>r[1]);let lo=Math.min(...vs),hi=Math.max(...vs);
+  const sp=(hi-lo)||1;lo-=sp*.12;hi+=sp*.12;
+  const y=v=>pad.t+ih-(v-lo)/(hi-lo)*ih,x=i=>pad.l+i/(hist.length-1)*iw;
+  let g="";
+  for(let k=0;k<=5;k++){const v=lo+(hi-lo)*k/5,yy=y(v);
+    g+=`<line x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}" stroke="#2a3044"/>`;
+    g+=`<text x="${pad.l-8}" y="${yy+3.5}" fill="#7f8699" font-size="10" text-anchor="end">${fmtPlain(v,o.unit,o.dec)}</text>`;}
+  const pts=hist.map((r,i)=>x(i)+","+y(r[1])).join(" ");
+  g+=`<polygon points="${pad.l},${pad.t+ih} ${pts} ${W-pad.r},${pad.t+ih}" fill="rgba(59,130,246,.10)"/>`;
+  g+=`<polyline points="${pts}" fill="none" stroke="#3b82f6" stroke-width="1.9"/>`;
+  const last=hist[hist.length-1];
+  g+=`<circle cx="${x(hist.length-1)}" cy="${y(last[1])}" r="3.4" fill="#3b82f6"/>`;
+  g+=`<text x="${W-pad.r}" y="${y(last[1])-9}" fill="#93c5fd" font-size="11" font-weight="600" text-anchor="end">${fmtPlain(last[1],o.unit,o.dec)}</text>`;
+  const every=Math.max(1,Math.ceil(hist.length/9));
+  hist.forEach((r,i)=>{if(i%every)return;
+    g+=`<text x="${x(i)}" y="${H-20}" fill="#7f8699" font-size="9.5" text-anchor="middle">${dShort(r[0])}</text>`;});
+  g+=`<line x1="${pad.l}" y1="${pad.t+ih}" x2="${W-pad.r}" y2="${pad.t+ih}" stroke="#333a4d"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
+}
+function barsChart(items,opt){
+  const o=Object.assign({unit:"",dec:2,color:"#3b82f6"},opt);
+  if(!items.length)return '<div class="hint">ডেটা নেই</div>';
+  const mx=Math.max(...items.map(i=>Math.abs(i.v)),1e-9);
+  return items.map(i=>`<div style="display:flex;align-items:center;gap:9px;margin:5px 0">
+    <span style="flex:0 0 132px;color:#9aa1b3;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${i.k}">${i.k}</span>
+    <span class="bar" style="flex:1"><i style="width:${Math.min(100,Math.abs(i.v)/mx*100)}%;background:${i.c||o.color}"></i></span>
+    <span style="flex:0 0 82px;text-align:right;font-size:11.5px;color:#d1d4dc">${fmtPlain(i.v,o.unit,o.dec)}</span></div>`).join("");
 }
 
-function dstr(iso){
-  const d = new Date(iso);
-  const dh = new Date(d.getTime() + UTC2DHAKA*3600e3);
-  return d.toISOString().slice(0,10) + ' ' + d.toISOString().slice(11,16) +
-         ' UTC · ' + dh.toISOString().slice(11,16) + ' ঢাকা';
+/* ---------------- renderers ---------------- */
+function legendCal(p){
+  return `<div class="legend">
+    <span><i style="background:#3b82f6"></i>actual — প্রত্যাশার চেয়ে বেশি</span>
+    <span><i style="background:#ef4444"></i>actual — প্রত্যাশার চেয়ে কম</span>
+    <span><i style="background:#4b5569"></i>প্রত্যাশার সমান</span>
+    <span><span class="ln"></span>forecast</span>
+    ${p.target!==null&&p.target!==undefined?`<span><span class="ln t"></span>target ${fmtPlain(p.target,p.unit,p.dec)}</span>`:""}</div>`;
 }
-function countdown(iso){
-  const ms = new Date(iso) - Date.now();
-  if (ms < 0) return null;
-  const h = Math.floor(ms/3600e3), m = Math.floor(ms%3600e3/60e3);
-  if (h >= 48) return Math.floor(h/24) + ' দিন';
-  if (h >= 1)  return h + ' ঘণ্টা ' + m + ' মিনিট';
-  return m + ' মিনিট';
+function calRows(p){
+  const all=(CAL["cal_"+state.country.toLowerCase()]||[]).filter(e=>e.title===p.ev&&n(e.actual)!==null);
+  const seen=new Set(),out=[];
+  all.forEach(e=>{const k=dOnly(e.date);if(seen.has(k))return;seen.add(k);out.push(e);});
+  out.sort((a,b)=>a.date.localeCompare(b.date));
+  return state.range==="all"?out:out.slice(-(+state.range||24));
+}
+function renderCal(p){
+  const rows=calRows(p);
+  if(!rows.length)return `<div class="load">${state.country} ডেটাসেটে "<b>${p.ev}</b>" নামে কোনো রিলিজ পাওয়া যায়নি।<br>
+    <span class="hint">Country dropdown থেকে US বেছে নাও।</span></div>`;
+  const last=rows[rows.length-1],f=n(last.forecast),a=n(last.actual);
+  let tag='<span class="tag on">as expected</span>';
+  if(a!==null&&f!==null)tag=a>f?'<span class="tag hot">above forecast</span>':a<f?'<span class="tag cool">below forecast</span>':'<span class="tag on">as expected</span>';
+  const hi=rows.reduce((m,r)=>n(r.actual)>n(m.actual)?r:m,rows[0]);
+  const lo=rows.reduce((m,r)=>n(r.actual)<n(m.actual)?r:m,rows[0]);
+  const tl=p.targetLabel||(p.unit==="%"?"Target Inflation Rate":"Target");
+  return `${legendCal(p)}
+  <div class="chartwrap">${chart(rows,{unit:p.unit,dec:p.dec,target:p.target,showLabels:true,targetLabel:tl})}</div>
+  <div class="grid" style="margin-top:18px">
+    <div class="kpi"><div class="lb"><span>Latest</span>${tag}</div><div class="vl">${fmtPlain(last.actual,p.unit,p.dec)}</div>
+      <div class="dt">${dLong(last.date)} · forecast ${fmtPlain(last.forecast,p.unit,p.dec)} · previous ${fmtPlain(last.previous,p.unit,p.dec)}</div></div>
+    <div class="kpi"><div class="lb">Highest (shown)</div><div class="vl">${fmtPlain(hi.actual,p.unit,p.dec)}</div><div class="dt">${dLong(hi.date)}</div></div>
+    <div class="kpi"><div class="lb">Lowest (shown)</div><div class="vl">${fmtPlain(lo.actual,p.unit,p.dec)}</div><div class="dt">${dLong(lo.date)}</div></div>
+    <div class="kpi"><div class="lb">Releases shown</div><div class="vl">${rows.length}</div>
+      <div class="dt">${dLong(rows[0].date)} → ${dLong(rows[rows.length-1].date)}</div></div>
+  </div>`;
+}
+function renderLine(p){
+  const s=SERIES.find(x=>x.series===p.series);
+  if(!s)return '<div class="load">সিরিজটা পাওয়া যায়নি।</div>';
+  const hist=state.range==="all"?s.history:s.history.slice(-(+state.range||24)*4);
+  const ch=s.prev!==null?s.latest-s.prev:null;
+  return `<div class="legend"><span><span class="ln" style="border-color:#3b82f6"></span>${s.label}</span></div>
+   <div class="chartwrap">${lineChart(hist,{unit:s.unit,dec:2})}</div>
+   <div class="grid" style="margin-top:18px">
+     <div class="kpi"><div class="lb">Latest</div><div class="vl">${fmtPlain(s.latest,s.unit,2)}</div><div class="dt">${dLong(s.latest_date)}</div></div>
+     <div class="kpi"><div class="lb">Previous</div><div class="vl">${fmtPlain(s.prev,s.unit,2)}</div>
+       <div class="dt ${ch>0?'up':ch<0?'dn':'fl'}">${ch===null?"—":(ch>0?"+":"")+ch.toFixed(2)}</div></div>
+   </div>`;
+}
+function renderHome(){
+  const us=CAL.cal_us||[],now=Date.now();
+  const up=us.filter(e=>new Date(e.date).getTime()>now).slice(0,8);
+  const cards=SERIES.slice(0,8).map(s=>{
+    const ch=s.prev!==null?s.latest-s.prev:null,cls=ch===null?"fl":ch>0?"up":"dn";
+    return `<div class="kpi"><div class="lb">${s.label}</div><div class="vl">${fmtPlain(s.latest,s.unit,2)}</div>
+      <div class="dt ${cls}">${ch===null?"—":(ch>0?"+":"")+ch.toFixed(2)} vs আগের · ${dLong(s.latest_date)}</div></div>`;}).join("");
+  return `<div class="grid">${cards}</div>
+  <h2 style="font-size:14px;margin:22px 0 10px">পরের রিলিজগুলো <span class="hint">(ঢাকার সময়)</span></h2>
+  <table><tr><th>সময় (ঢাকা)</th><th>ইভেন্ট</th><th>গুরুত্ব</th><th>Forecast</th><th>Previous</th></tr>
+  ${up.map(e=>`<tr><td>${dhaka(e.date)}</td><td>${e.title}</td>
+    <td>${e.importance>=1?'<span class="tag hi">HIGH</span>':'<span class="tag on">med</span>'}</td>
+    <td>${fmtPlain(e.forecast,e.unit,2)}</td><td>${fmtPlain(e.previous,e.unit,2)}</td></tr>`).join("")}
+  </table><div class="note">ডেটা তৈরি: ${META?META.built_utc:"—"}</div>`;
+}
+function renderCot(){
+  if(!COT.length)return '<div class="load">COT ডেটা নেই।</div>';
+  return COT.map(c=>{
+    const h=c.history.slice(-52),last=h[h.length-1]||{},prev=h[h.length-5];
+    const ch=prev?last.net-prev.net:null;
+    const nets=h.map(x=>x.net),mn=Math.min(...nets),mx=Math.max(...nets);
+    const pct=mx>mn?((last.net-mn)/(mx-mn)*100):50;
+    const rows=h.map(x=>({date:x.date,actual:x.net}));
+    return `<div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+        <b style="font-size:14px">${c.label}</b><span class="hint">Managed Money net · ${dLong(last.date)}</span>
+        <span style="margin-left:auto;font-size:13px">net <b>${(last.net||0).toLocaleString()}</b>
+          <span class="${ch>0?'up':ch<0?'dn':'fl'}">(${ch===null?"—":(ch>0?"+":"")+ch.toLocaleString()} 4w)</span></span></div>
+      <div class="legend"><span>৫২ সপ্তাহের range-এ অবস্থান: <b>${pct.toFixed(0)}%</b></span>
+        <span>long ${(last.long||0).toLocaleString()}</span><span>short ${(last.short||0).toLocaleString()}</span></div>
+      <div class="chartwrap">${chart(rows,{unit:"",dec:0,base0:true,h:230})}</div></div>`;}).join("")
+  +`<div class="note">সূত্র: CFTC Commitments of Traders (publicreporting.cftc.gov) — সাপ্তাহিক, মঙ্গলবারের অবস্থান শুক্রবার প্রকাশ। নীল বার = net long, লাল = net short।</div>`;
+}
+function renderWalls(){
+  if(!WALLS.length)return '<div class="load">রিটেইল সেন্টিমেন্ট ডেটা নেই।</div>';
+  return WALLS.map(w=>{
+    const buys=w.buy_walls||[],sells=w.sell_walls||[];
+    const tb=buys.reduce((s,x)=>s+x.buy,0),ts=sells.reduce((s,x)=>s+x.sell,0);
+    const bp=tb/((tb+ts)||1)*100;
+    return `<div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        <b style="font-size:14px">${w.label} <span class="hint">${w.symbol}</span></b>
+        <span style="margin-left:auto">দাম <b>${w.price?w.price.toFixed(2):"—"}</b></span></div>
+      <div class="legend"><span>resting orders — buy বনাম sell</span>
+        <span class="up">buy ${bp.toFixed(0)}%</span><span class="dn">sell ${(100-bp).toFixed(0)}%</span></div>
+      <div class="bar" style="height:9px;margin-bottom:16px"><i style="width:${bp}%;background:#3b82f6"></i></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div><div class="hint" style="margin-bottom:7px">সবচেয়ে বড় BUY wall</div>${barsChart(buys.map(x=>({k:x.price.toFixed(2),v:x.buy})),{dec:2,color:"#3b82f6"})}</div>
+        <div><div class="hint" style="margin-bottom:7px">সবচেয়ে বড় SELL wall</div>${barsChart(sells.map(x=>({k:x.price.toFixed(2),v:x.sell})),{dec:2,color:"#ef4444"})}</div>
+      </div></div>`;}).join("")
+  +`<div class="note">সূত্র: FastBull pending-order book। এগুলো ব্রোকারের resting order — দামের লেভেল হিসেবে পড়ো, দিকের নিশ্চয়তা নয়।</div>`;
+}
+function renderPC(){
+  if(!OPT)return '<div class="load">CBOE ডেটা নেই।</div>';
+  const items=(OPT.ratios||[]).map(r=>({k:r.name.replace(" PUT/CALL RATIO",""),v:+r.value}));
+  const tot=+OPT.total_pc||1;
+  const mood=tot>1?"ডিফেন্সিভ — put বেশি":tot<0.7?"বুলিশ — call বেশি":"নিরপেক্ষ";
+  return `<div class="grid" style="margin-bottom:18px">
+    <div class="kpi"><div class="lb">Total Put/Call</div><div class="vl">${OPT.total_pc}</div><div class="dt">${mood}</div></div>
+    <div class="kpi"><div class="lb">Index Put/Call</div><div class="vl">${OPT.index_pc}</div><div class="dt">ইনডেক্স হেজিং</div></div>
+    <div class="kpi"><div class="lb">Equity Put/Call</div><div class="vl">${OPT.equity_pc}</div><div class="dt">একক শেয়ার</div></div>
+    <div class="kpi"><div class="lb">VIX Put/Call</div><div class="vl">${OPT.vix_pc}</div><div class="dt">volatility হেজ</div></div></div>
+  <div class="card"><div class="hint" style="margin-bottom:10px">সব প্রোডাক্টের Put/Call ratio</div>
+    ${barsChart(items,{dec:2,color:"#8b5cf6"})}</div>
+  <div class="note">সূত্র: CBOE daily market statistics · ${OPT.as_of||"—"}। ১-এর উপরে = put বেশি (হেজিং/ভয়), নিচে = call বেশি (ঝুঁকি নেওয়া)।</div>`;
+}
+function renderNetVol(){
+  if(!OPT||!OPT.products)return '<div class="load">CBOE ডেটা নেই।</div>';
+  const ps=OPT.products.filter(p=>p.volume&&p.open_interest).map(p=>({
+    name:p.name,vc:p.volume.call,vp:p.volume.put,oc:p.open_interest.call,op:p.open_interest.put,
+    net:p.volume.call-p.volume.put}));
+  ps.sort((a,b)=>Math.abs(b.net)-Math.abs(a.net));
+  return `<div class="card"><div class="hint" style="margin-bottom:10px">Net volume (call − put), আজকের ভলিউম</div>
+    ${barsChart(ps.slice(0,12).map(p=>({k:p.name,v:p.net,c:p.net>=0?"#10b981":"#ef4444"})),{dec:0})}</div>
+  <table style="margin-top:18px"><tr><th>Product</th><th>Call vol</th><th>Put vol</th><th>Net vol</th><th>Call OI</th><th>Put OI</th><th>Net OI</th></tr>
+  ${ps.map(p=>`<tr><td>${p.name}</td><td>${p.vc.toLocaleString()}</td><td>${p.vp.toLocaleString()}</td>
+    <td class="${p.net>=0?'up':'dn'}">${(p.net>=0?"+":"")+p.net.toLocaleString()}</td>
+    <td>${p.oc.toLocaleString()}</td><td>${p.op.toLocaleString()}</td>
+    <td class="${p.oc-p.op>=0?'up':'dn'}">${((p.oc-p.op)>=0?"+":"")+(p.oc-p.op).toLocaleString()}</td></tr>`).join("")}</table>
+  <div class="note">সূত্র: CBOE · ${OPT.as_of||"—"}। Net volume = আজ call বনাম put কত বেশি কেনাবেচা হলো। ধনাত্মক = call-প্রধান।</div>`;
+}
+function renderOptWalls(){
+  if(!OPT||!OPT.products)return '<div class="load">ডেটা নেই।</div>';
+  const main=["SUM OF ALL PRODUCTS","INDEX OPTIONS","EQUITY OPTIONS","EXCHANGE TRADED PRODUCTS","SPX + SPXW","CBOE VOLATILITY INDEX (VIX)"];
+  const rows=OPT.products.filter(p=>main.includes(p.name)&&p.open_interest);
+  return `<div class="card"><div class="hint" style="margin-bottom:10px">Open interest — call বনাম put (কোন দিকে পজিশন জমে আছে)</div>
+  ${rows.map(p=>{const t=p.open_interest.total||1,c=p.open_interest.call/t*100;
+    return `<div style="margin:12px 0"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">
+      <span>${p.name}</span><span><span class="up">call ${c.toFixed(0)}%</span> · <span class="dn">put ${(100-c).toFixed(0)}%</span></span></div>
+      <div class="bar" style="height:9px"><i style="width:${c}%;background:#10b981"></i></div></div>`;}).join("")}</div>
+  <div class="note">সূত্র: CBOE · ${OPT.as_of||"—"}। এটা US ইনডেক্স/ইকুইটি অপশনের ছবি — সোনার অপশন wall নয় (সেগুলো CME-তে, ফ্রি রিয়েল-টাইম পাওয়া যায় না)। সোনার resting-order wall দেখতে <b>Retail Sentiment</b> খোলো।</div>`;
+}
+function renderScanners(){
+  const out=[];
+  COUNTRIES.forEach(([c])=>{
+    (CAL["cal_"+c.toLowerCase()]||[])
+      .filter(e=>e.importance>=1&&new Date(e.date).getTime()>Date.now()-6*3600e3)
+      .slice(0,4).forEach(e=>out.push(Object.assign({},e,{c:c})));});
+  out.sort((a,b)=>a.date.localeCompare(b.date));
+  if(!out.length)return '<div class="load">কোনো HIGH-importance ইভেন্ট পাওয়া যায়নি।</div>';
+  return `<table><tr><th>সময় (ঢাকা)</th><th>Ctry</th><th>ইভেন্ট</th><th>Actual</th><th>Forecast</th><th>Previous</th><th></th></tr>
+  ${out.slice(0,60).map(e=>{
+    const a=n(e.actual),f=n(e.forecast);
+    const tag=a===null?'<span class="tag on">অপেক্ষমাণ</span>':f===null?'':a>f?'<span class="tag hot">above</span>':a<f?'<span class="tag cool">below</span>':'<span class="tag on">as expected</span>';
+    return `<tr><td>${dhaka(e.date)}</td><td>${e.c}</td><td>${e.title}</td>
+      <td><b>${fmtPlain(e.actual,e.unit,2)}</b></td><td>${fmtPlain(e.forecast,e.unit,2)}</td>
+      <td>${fmtPlain(e.previous,e.unit,2)}</td><td>${tag}</td></tr>`;}).join("")}</table>
+  <div class="note">শুধু HIGH-importance ইভেন্ট — শেষ ৬ ঘণ্টা + সামনের সব, ১০টা দেশ। সূত্র: TradingView economic calendar।</div>`;
+}
+function renderHeatmap(){
+  const defs=[["Inflation Rate YoY","মুদ্রাস্ফীতি"],["Core Inflation Rate YoY","Core মুদ্রাস্ফীতি"],
+    ["Unemployment Rate","বেকারত্ব"],["Non Farm Payrolls","চাকরি"],["GDP Growth Rate QoQ Adv","GDP"],
+    ["Retail Sales MoM","খুচরা বিক্রি"],["Fed Interest Rate Decision","সুদের হার"],
+    ["ISM Manufacturing PMI","ম্যানুফ্যাকচারিং"],["ISM Services PMI","সার্ভিসেস"],["Balance of Trade","বাণিজ্য"]];
+  const cs=COUNTRIES.map(c=>c[0]);
+  let h=`<div class="hm" style="grid-template-columns:150px repeat(${cs.length},minmax(46px,1fr))">
+    <div class="c hd"></div>${cs.map(c=>`<div class="c hd">${c}</div>`).join("")}`;
+  defs.forEach(([title,bn])=>{
+    h+=`<div class="c rl">${bn}</div>`;
+    cs.forEach(c=>{
+      const evs=(CAL["cal_"+c.toLowerCase()]||[]).filter(e=>e.title===title&&n(e.actual)!==null).slice(-2);
+      if(evs.length<2){h+=`<div class="c" style="background:#2a3044;color:#5a6172">—</div>`;return;}
+      const a0=n(evs[0].actual),a1=n(evs[1].actual),d=a1-a0;
+      const bad=title.includes("Inflation")||title==="Unemployment Rate";
+      const good=(bad?d<0:d>0);
+      const al=Math.min(.55,Math.abs(d)/(Math.abs(a0)||1)*3+.08);
+      h+=`<div class="c" style="background:${good?`rgba(16,185,129,${al})`:`rgba(239,68,68,${al})`}">${d>0?"+":""}${d.toFixed(2)}</div>`;});
+  });
+  return h+`</div>
+  <div class="note">প্রতিটি ঘরে শেষ দুই রিলিজের পার্থক্য। <span class="up">সবুজ</span> = অর্থনীতির জন্য অনুকূল দিক (মুদ্রাস্ফীতি/বেকারত্ব নামছে, বৃদ্ধি/চাকরি বাড়ছে), <span class="dn">লাল</span> = প্রতিকূল। সূত্র: TradingView calendar।</div>`;
+}
+function renderTops(){
+  const s=Object.fromEntries(SERIES.map(x=>[x.series,x]));
+  const real=s.DFII10,dx=s.DTWEXBGS,un=s.UNRATE,ic=s.ICSA;
+  const ch=(x,k=5)=>{if(!x||x.history.length<=k)return 0;
+    const a=x.history[x.history.length-1][1],b=x.history[x.history.length-1-k][1];return a-b;};
+  const sc=v=>Math.max(-5,Math.min(5,v));
+  const cotCrowd=c=>{const t=COT.find(x=>x.code===c);
+    if(!t||t.history.length<10)return 0;
+    const h=t.history,nets=h.map(x=>x.net),mn=Math.min(...nets),mx=Math.max(...nets);
+    if(mx===mn)return 0;
+    return ((h[h.length-1].net-mn)/(mx-mn)-0.5)*10;};
+  const assets=[
+    {n:"Gold (XAUUSD)",c:"GC",c1:-sc(ch(real)*1.4),c2:-sc(ch(dx)*1.1),c3:-cotCrowd("GC")/2},
+    {n:"Silver (XAGUSD)",c:"SI",c1:-sc(ch(real)*1.4),c2:-sc(ch(dx)*1.1),c3:-cotCrowd("SI")/2},
+    {n:"WTI Crude",c:"CL",c1:0,c2:-sc(ch(dx)*1.1),c3:-cotCrowd("CL")/2},
+    {n:"S&P 500 (ES)",c:"ES",c1:-sc(ch(real)*1.4),c2:0,c3:-cotCrowd("ES")/2},
+  ];
+  const rows=assets.map(a=>{
+    const tot=a.c1+a.c2+a.c3;
+    const band=tot>=5?'<span class="tag cool">BULLISH</span>':tot<=-5?'<span class="tag hot">BEARISH</span>':'<span class="tag on">NEUTRAL</span>';
+    return `<tr><td><b>${a.n}</b></td><td>${a.c1.toFixed(1)}</td><td>${a.c2.toFixed(1)}</td><td>${a.c3.toFixed(1)}</td>
+      <td><b class="${tot>0?'up':tot<0?'dn':'fl'}">${tot>0?"+":""}${tot.toFixed(1)}</b></td><td>${band}</td></tr>`;}).join("");
+  const tot=(ch(real)<=0?2:-2)+(ch(dx)<=0?2:-2)+(ch(un)<=0?2:-2)+(ch(ic)<=0?2:-2);
+  const lbl=tot>=5?"Risk-ON":tot<=-5?"Risk-OFF":"Mixed";
+  return `<div class="grid" style="margin-bottom:18px">
+    <div class="kpi"><div class="lb">10Y Real Yield</div><div class="vl">${real?real.latest.toFixed(2):"—"}%</div>
+      <div class="dt ${ch(real)>=0?'up':'dn'}">${real?(ch(real)>=0?"+":"")+ch(real).toFixed(2)+" (5d)":""}</div></div>
+    <div class="kpi"><div class="lb">Broad Dollar Index</div><div class="vl">${dx?dx.latest.toFixed(2):"—"}</div>
+      <div class="dt ${ch(dx)>=0?'up':'dn'}">${dx?(ch(dx)>=0?"+":"")+ch(dx).toFixed(2)+" (5d)":""}</div></div>
+    <div class="kpi"><div class="lb">Unemployment</div><div class="vl">${un?un.latest.toFixed(1):"—"}%</div>
+      <div class="dt">${un?(ch(un)>=0?"+":"")+ch(un).toFixed(1):""}</div></div>
+    <div class="kpi"><div class="lb">Risk-On / Risk-Off Gauge</div><div class="vl">${lbl}</div>
+      <div class="dt">score ${tot>0?"+":""}${tot} · range −8…+8</div></div></div>
+  <div class="card"><table>
+    <tr><th>Asset</th><th>Real yield</th><th>Dollar</th><th>COT crowding</th><th>Score</th><th>Bias</th></tr>${rows}</table>
+    <div class="note"><b>কীভাবে হিসাব:</b> তিনটা ভাগ, প্রতিটা −৫…+৫, যোগফল −১৫…+১৫। <b>Real yield</b> — ১০ বছরের আসল ইল্ড বাড়লে সোনা/সিলভার/ইকুইটির জন্য নেতিবাচক। <b>Dollar</b> — ডলার শক্ত হলে কমোডিটির জন্য নেতিবাচক। <b>COT crowding</b> — ৫২ সপ্তাহের range-এ পজিশন একদিকে ঠাসা থাকলে উল্টো দিকের ঝুঁকি বেশি, তাই বিয়োগ করে বসানো। এটা <b>ভবিষ্যদ্বাণী নয়</b> — শুধু কোন দিকে ঝুঁকি জমে আছে তার ছবি।</div></div>`;
+}
+function renderCalendar(){
+  const us=CAL.cal_us||[],today=new Date().toISOString().slice(0,10);
+  const rows=us.filter(e=>dOnly(e.date)>=today).slice(0,80);
+  if(!rows.length)return '<div class="load">সামনের কোনো ইভেন্ট নেই।</div>';
+  return `<table><tr><th>সময় (ঢাকা)</th><th>ইভেন্ট</th><th>গুরুত্ব</th><th>Actual</th><th>Forecast</th><th>Previous</th></tr>
+  ${rows.map(e=>`<tr><td>${dhaka(e.date)}</td><td>${e.title}</td>
+    <td>${e.importance>=1?'<span class="tag hi">HIGH</span>':e.importance===0?'<span class="tag on">med</span>':'<span class="hint">low</span>'}</td>
+    <td><b>${fmtPlain(e.actual,e.unit,2)}</b></td><td>${fmtPlain(e.forecast,e.unit,2)}</td><td>${fmtPlain(e.previous,e.unit,2)}</td></tr>`).join("")}
+  </table><div class="note">US ইভেন্ট, আজ থেকে সামনে। সূত্র: TradingView economic calendar · তৈরি ${META?META.built_utc:"—"}</div>`;
 }
 
-let CAL = [], IND = [], FILTER = 'hi';
-
-function spark(hist, w=180, h=38){
-  if (!hist || hist.length < 2) return '';
-  const vs = hist.map(p => p[1]);
-  const mn = Math.min(...vs), mx = Math.max(...vs), rg = (mx - mn) || 1;
-  const pts = vs.map((v,i) => {
-    const x = (i/(vs.length-1))*w;
-    const y = h - ((v-mn)/rg)*(h-6) - 3;
-    return x.toFixed(1)+','+y.toFixed(1);
-  }).join(' ');
-  const last = vs[vs.length-1], prev = vs[vs.length-2];
-  const c = last > prev ? 'var(--hot)' : last < prev ? 'var(--cool)' : 'var(--neut)';
-  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-    <polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.8"
-      stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+/* ---------------- router ---------------- */
+function aboutText(p){
+  if(p.about)return p.about;
+  if(p.kind==="line")return `${p.title} — সূত্র: FRED (St. Louis Fed)। এটা একটা ধারাবাহিক (line) সিরিজ, রিলিজ-ভিত্তিক বার নয়।`;
+  if(p.kind==="cot")return "CFTC Commitments of Traders — প্রতি সপ্তাহে মঙ্গলবারের ক্লোজে বড় ট্রেডারদের long/short পজিশন। এখানে Managed Money (হেজ ফান্ড ও স্পেকুলেটর) দেখানো হচ্ছে।";
+  if(p.kind==="pc")return "CBOE-র দৈনিক put/call ratio — অপশন বাজারে কতটা হেজিং বনাম ঝুঁকি নেওয়া হচ্ছে।";
+  return `${p.title} — সূত্র: TradingView economic calendar। বারগুলো রিলিজের actual, লাল লাইনটা তার forecast — তাই বার নীল হলে প্রত্যাশার চেয়ে বেশি, লাল হলে কম।`;
+}
+function render(){
+  const p=byId(state.page);
+  $("#ttl").textContent=p.title||p.label;
+  const srckind={line:"FRED (St. Louis Fed)",cot:"CFTC Commitments of Traders",pc:"CBOE daily market statistics",
+    netvol:"CBOE daily market statistics",wallschart:"CBOE daily market statistics",
+    walls:"FastBull pending orders"}[p.kind]||"TradingView economic calendar";
+  $("#src").textContent=`সূত্র: ${srckind} · ডেটা তৈরি ${META?META.built_utc:"…"}`;
+  let html="";
+  if(p.kind==="cal")html=renderCal(p);
+  else if(p.kind==="line")html=renderLine(p);
+  else if(p.kind==="home")html=renderHome();
+  else if(p.kind==="cot")html=renderCot();
+  else if(p.kind==="walls")html=renderWalls();
+  else if(p.kind==="pc")html=renderPC();
+  else if(p.kind==="netvol")html=renderNetVol();
+  else if(p.kind==="wallschart")html=renderOptWalls();
+  else if(p.kind==="scanners")html=renderScanners();
+  else if(p.kind==="heatmap")html=renderHeatmap();
+  else if(p.kind==="tops")html=renderTops();
+  else if(p.kind==="calendar")html=renderCalendar();
+  if(["cal","line"].includes(p.kind)){
+    html+=`<div class="about"><h2>About this graph</h2><p>${aboutText(p)}</p>
+      <div class="btns"><button class="btn" onclick="window.print()">Print / Save</button>
+      <button class="btn p" onclick="document.getElementById('qbtn').click()">Read More</button></div></div>`;}
+  $("#body").innerHTML=html;
+  document.querySelectorAll(".nav[data-id]").forEach(el=>el.classList.toggle("on",el.dataset.id===state.page));
+  document.querySelectorAll(".sub").forEach(el=>{
+    const on=[...el.querySelectorAll(".nav")].some(x=>x.dataset.id===state.page);
+    if(on)el.classList.add("show");
+    const par=document.querySelector(`.nav[data-tog="${el.id}"]`);
+    if(par)par.classList.toggle("open",on);});
 }
 
-function renderCards(){
-  document.getElementById('cards').innerHTML = IND.map(s => {
-    const chg = (s.prev === null || s.prev === undefined) ? null : s.latest - s.prev;
-    const cls = chg === null ? 'flat' : chg > 0 ? 'up' : chg < 0 ? 'down' : 'flat';
-    const sign = chg === null ? '' : (chg > 0 ? '▲ +' : chg < 0 ? '▼ ' : '· ') + fmtN(chg);
-    return `<div class="card">
-      <div class="k">${s.label_bn} <span style="color:var(--dim2)">${s.unit}</span></div>
-      <div class="v">${fmtN(s.latest)}<span style="font-size:13px;color:var(--dim2)">${s.unit==='%'?'%':''}</span></div>
-      <div class="d">${s.latest_date} · <span class="${cls}">${sign}</span></div>
-      ${spark(s.history)}
-    </div>`;
-  }).join('') || '<div class="card err">FRED ডেটা লোড হয়নি</div>';
+/* ---------------- sidebar ---------------- */
+function buildSide(){
+  let h=`<div class="brand"><span class="dot"></span><div><b>MACRO DESK</b><span>US economic data</span></div></div>`;
+  PAGES.forEach((g,gi)=>{
+    if(g.group)h+=`<div class="grp">${g.group}</div>`;
+    g.items.forEach(it=>{
+      if(it.children){
+        const sid=`sub${gi}_${it.id}`;
+        h+=`<div class="nav" data-tog="${sid}"><span class="ic">${it.ic}</span>${it.label}<span class="caret">▶</span></div>`;
+        h+=`<div class="sub" id="${sid}">`+it.children.map(c=>
+          `<div class="nav" data-id="${c.id}"><span class="ic">·</span>${c.label}</div>`).join("")+`</div>`;
+      }else{
+        h+=`<div class="nav" data-id="${it.id}"><span class="ic">${it.ic||"·"}</span>${it.label}</div>`;}});
+  });
+  $("#side").innerHTML=h;
+  $("#side").addEventListener("click",e=>{
+    const t=e.target.closest(".nav");if(!t)return;
+    if(t.dataset.tog){document.getElementById(t.dataset.tog).classList.toggle("show");
+      t.classList.toggle("open");return;}
+    if(t.dataset.id){state.page=t.dataset.id;location.hash=t.dataset.id;render();}});
 }
 
-function renderNext(){
-  const now = Date.now();
-  const hi = CAL.filter(e => e.importance === 1);
-  const fut = hi.filter(e => new Date(e.date).getTime() > now).slice(0, 6);
-  const rec = hi.filter(e => new Date(e.date).getTime() <= now).slice(-3).reverse();
-  const list = [...fut, ...rec];
-  document.getElementById('next').innerHTML = list.map(e => {
-    const isPast = new Date(e.date).getTime() <= now;
-    const cd = countdown(e.date);
-    const v = verdict(e.title, e.actual, e.forecast);
-    return `<div class="ev ${isPast?'past':''}">
-      <div class="t">${e.title}</div>
-      <div class="when">${dstr(e.date)}${cd ? ' · <span class="cd">' + cd + ' বাকি</span>' : ''}</div>
-      <div class="row">
-        <div><span>ACTUAL</span><b>${e.actual===null?'<i class="pend">বাকি</i>':fmtN(e.actual)}</b></div>
-        <div><span>FORECAST</span><b>${fmtN(e.forecast)}</b></div>
-        <div><span>PREVIOUS</span><b>${fmtN(e.previous)}</b></div>
-      </div>
-      ${v ? `<div style="margin-top:6px"><span class="tag ${v.k}">${v.t}</span></div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-function renderRows(){
-  const now = Date.now();
-  const q = (document.getElementById('q').value || '').toLowerCase().trim();
-  let rows = CAL.slice();
-  if (FILTER === 'hi')      rows = rows.filter(e => e.importance === 1);
-  if (FILTER === 'done')    rows = rows.filter(e => e.actual !== null && e.actual !== undefined);
-  if (FILTER === 'pending') rows = rows.filter(e => e.actual === null || e.actual === undefined);
-  if (q) rows = rows.filter(e => (e.title+' '+(e.indicator||'')+' '+(e.period||'')).toLowerCase().includes(q));
-  rows.sort((a,b) => new Date(b.date) - new Date(a.date));
-  rows = rows.slice(0, 220);
-
-  document.getElementById('rows').innerHTML = rows.map(e => {
-    const v = verdict(e.title, e.actual, e.forecast);
-    const dot = e.importance === 1 ? 'i1' : e.importance === 0 ? 'i0' : 'im';
-    const isPast = new Date(e.date).getTime() <= now;
-    return `<tr>
-      <td style="color:var(--dim)">${e.date.slice(5,10)} ${e.date.slice(11,16)}${isPast?'':' <span class="cd">⏳</span>'}</td>
-      <td class="ttl"><span class="dot ${dot}"></span>${e.title}</td>
-      <td style="color:var(--dim2)">${e.period||''}</td>
-      <td>${(e.actual===null||e.actual===undefined)?'<span class="pend">—</span>':fmtN(e.actual)}</td>
-      <td style="color:var(--dim)">${fmtN(e.forecast)}</td>
-      <td style="color:var(--dim2)">${fmtN(e.previous)}</td>
-      <td>${v?`<span class="tag ${v.k}">${v.t}</span>`:'<span class="pend">—</span>'}</td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="7" style="color:var(--dim2)">কিছু পাওয়া গেল না</td></tr>';
-}
-
+/* ---------------- boot ---------------- */
 async function boot(){
-  try{
-    const [c, i, m] = await Promise.all([
-      fetch('data/calendar.json').then(r => r.json()),
-      fetch('data/indicators.json').then(r => r.json()),
-      fetch('data/meta.json').then(r => r.json()).catch(() => null),
-    ]);
-    CAL = c; IND = i;
-    document.getElementById('stamp').innerHTML =
-      `ডেটা আপডেট: <b>${(m&&m.built_utc)||'—'}</b><br>নিজে থেকেই রিফ্রেশ হয়`;
-    document.getElementById('srcs').textContent =
-      (m && m.sources) ? Object.entries(m.sources).map(([k,v]) => `${k}: ${v}`).join(' · ') : '—';
-  }catch(err){
-    document.getElementById('stamp').innerHTML = '<span class="err">ডেটা লোড হয়নি</span>';
-    console.error(err);
-  }
-  renderNext(); renderCards(); renderRows();
+  $("#ctry").innerHTML=COUNTRIES.map(([c,l])=>`<option value="${c}">${l}</option>`).join("");
+  $("#rng").innerHTML=RANGES.map(([v,l])=>`<option value="${v}">${l}</option>`).join("");
+  $("#rng").value=state.range;
+  buildSide();
+  const tries=[["meta.json",x=>META=x],["series.json",x=>SERIES=x],["cot.json",x=>COT=x],
+               ["options.json",x=>OPT=x],["walls.json",x=>WALLS=x]];
+  for(const [f,set] of tries){try{set(await J("data/"+f));}catch(e){}}
+  await cal("US");
+  const h=(location.hash||"").replace("#","");
+  if(h&&FLAT.some(p=>p.id===h))state.page=h;
+  render();
+  $("#ctry").onchange=async e=>{state.country=e.target.value;await cal(state.country);render();};
+  $("#rng").onchange=e=>{state.range=e.target.value;render();};
+  $("#qbtn").onclick=()=>{
+    const b=$("#body"),p=byId(state.page);
+    let el=b.querySelector(".info");
+    if(!el){el=document.createElement("div");el.className="info";
+      el.innerHTML=`<h3>${p.title||p.label} — কী দেখছি?</h3><p>${aboutText(p)}</p>`;b.prepend(el);}
+    el.classList.toggle("show");};
 }
-
-document.querySelectorAll('button[data-f]').forEach(b => b.onclick = () => {
-  document.querySelectorAll('button[data-f]').forEach(x => x.classList.remove('on'));
-  b.classList.add('on'); FILTER = b.dataset.f; renderRows();
-});
-document.getElementById('q').oninput = renderRows;
 boot();
-setInterval(() => { renderNext(); renderRows(); }, 60000);
 </script>
 </body>
 </html>

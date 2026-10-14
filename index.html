@@ -141,6 +141,7 @@ const PAGES=[
  {group:"",items:[{id:"home",label:"Desk Home",ic:"▤",kind:"home"}]},
  {group:"Sentiment & Positioning",items:[
    {id:"cot",label:"COT Report",ic:"◧",kind:"cot"},
+   {id:"cotidx",label:"COT Index & Velocity",ic:"◨",kind:"cotidx"},
    {id:"retail",label:"Retail Sentiment",ic:"◑",kind:"walls"},
    {id:"pc",label:"Put/Call Ratio",ic:"◔",kind:"pc"},
    {id:"netvol",label:"Net Options Volume",ic:"▥",kind:"netvol"},
@@ -149,6 +150,10 @@ const PAGES=[
  {group:"Macro",items:[
    {id:"scanners",label:"Macro Scanners",ic:"⌗",kind:"scanners"},
    {id:"heatmap",label:"Economic Heatmap",ic:"▩",kind:"heatmap"},
+   {id:"mktheat",label:"Market Heatmap",ic:"▦",kind:"mktheat"},
+   {id:"momvol",label:"Momentum & Volatility",ic:"≈",kind:"momvol"},
+   {id:"season",label:"Seasonality",ic:"◫",kind:"season"},
+   {id:"scorehist",label:"Score History",ic:"◈",kind:"scorehist"},
    {id:"tops",label:"Top Setups",ic:"★",kind:"tops"},
    {id:"calendar",label:"Economic Calendar",ic:"▤",kind:"calendar"},
  ]},
@@ -221,7 +226,7 @@ PAGES.forEach(g=>g.items.forEach(it=>{
   else FLAT.push(it);}));
 const byId=id=>FLAT.find(p=>p.id===id)||FLAT[0];
 
-let CAL={},SERIES=[],COT=[],OPT=null,WALLS=[],META=null;
+let CAL={},SERIES=[],COT=[],OPT=null,WALLS=[],META=null,MARKET=[],SEASON=[],SCORE=[];
 const state={page:"cpi",country:"US",range:"24"};
 const $=s=>document.querySelector(s);
 const loadCache={};
@@ -510,6 +515,101 @@ function renderHeatmap(){
   return h+`</div>
   <div class="note">প্রতিটি ঘরে শেষ দুই রিলিজের পার্থক্য। <span class="up">সবুজ</span> = অর্থনীতির জন্য অনুকূল দিক (মুদ্রাস্ফীতি/বেকারত্ব নামছে, বৃদ্ধি/চাকরি বাড়ছে), <span class="dn">লাল</span> = প্রতিকূল। সূত্র: TradingView calendar।</div>`;
 }
+function renderCotIdx(){
+  if(!COT.length)return '<div class="load">COT ডেটা নেই।</div>';
+  return COT.map(c=>{
+    const h=c.history.slice(-156),nets=h.map(x=>x.net);
+    const idx=h.map((x,i)=>{
+      const w=nets.slice(Math.max(0,i-51),i+1);
+      const mn=Math.min(...w),mx=Math.max(...w);
+      return {date:x.date,actual:mx===mn?50:Math.round((x.net-mn)/(mx-mn)*100)};});
+    const last=idx[idx.length-1]||{},lastN=h[h.length-1]||{};
+    const vel=[4,13,26].map(k=>{
+      const p=h[h.length-1-k];
+      return p?{k:k+"w",v:lastN.net-p.net}:null;}).filter(Boolean);
+    const zone=v=>v>=80?'<span class="tag hot">অতি-ভিড় (contrarian short zone)</span>':
+      v<=20?'<span class="tag cool">অতি-খালি (contrarian long zone)</span>':'<span class="tag on">স্বাভাবিক</span>';
+    return `<div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <b style="font-size:14px">${c.label} — COT Index</b>
+        <span style="margin-left:auto;font-size:13px">index <b>${last.actual}</b> / 100 ${zone(last.actual)}</span></div>
+      <div class="chartwrap">${chart(idx,{unit:"",dec:0,target:null,h:210})}</div>
+      <div class="grid" style="margin-top:14px">
+        ${vel.map(v=>`<div class="kpi"><div class="lb">Velocity ${v.k}</div>
+          <div class="vl ${v.v>=0?'up':'dn'}">${v.v>=0?"+":""}${v.v.toLocaleString()}</div>
+          <div class="dt">net position পরিবর্তন</div></div>`).join("")}
+      </div></div>`;}).join("")
+  +`<div class="note">সূত্র: CFTC COT। <b>COT Index</b> = শেষ ৫২ সপ্তাহের net position-এর মধ্যে আজ কোথায় (০ = সবচেয়ে খালি, ১০০ = সবচেয়ে ভিড়)। <b>Velocity</b> = গত ৪/১৩/২৬ সপ্তাহে net কত বদলেছে। ৮০-এর উপরে বা ২০-এর নিচে গেলে contrarian দিক থেকে দেখা হয়।</div>`;
+}
+function renderMktHeat(){
+  if(!MARKET.length)return '<div class="load">মার্কেট ডেটা নেই।</div>';
+  const order=["Metals","Energy","FX","Indices","Crypto","Rates"];
+  const names={Metals:"ধাতু",Energy:"জ্বালানি",FX:"মুদ্রা",Indices:"সূচক",Crypto:"ক্রিপ্টো",Rates:"ইল্ড"};
+  const tone=v=>{const a=Math.min(.62,Math.abs(v)/2.2+.08);
+    return v>0?`rgba(16,185,129,${a})`:`rgba(239,68,68,${a})`;};
+  return order.map(k=>{
+    const rows=MARKET.filter(x=>x.class===k&&x.change!==null);
+    if(!rows.length)return "";
+    return `<div style="margin-bottom:20px"><div class="hint" style="margin-bottom:7px">${names[k]||k}</div>
+      <div class="hm" style="grid-template-columns:repeat(auto-fill,minmax(104px,1fr))">
+      ${rows.map(r=>`<div class="c" style="background:${tone(r.change)}" title="${r.ticker} · close ${r.close}">
+        <div style="font-size:10.5px;opacity:.85">${r.label}</div>
+        <div style="font-size:13px">${r.change>0?"+":""}${r.change.toFixed(2)}%</div>
+        <div style="font-size:10px;opacity:.8">${r.close!==null?(+r.close).toLocaleString(undefined,{maximumFractionDigits:2}):"—"}</div>
+      </div>`).join("")}</div></div>`;}).join("")
+  +`<div class="note">সূত্র: TradingView scanner (একবারেই ২৬টা অ্যাসেট)। রং = আজকের % পরিবর্তন — <span class="up">সবুজ</span> ওপরে, <span class="dn">লাল</span> নিচে।</div>`;
+}
+function renderMomVol(){
+  if(!MARKET.length)return '<div class="load">মার্কেট ডেটা নেই।</div>';
+  const rows=[...MARKET].sort((a,b)=>(b.rating??-9)-(a.rating??-9));
+  const rt=v=>v===null||v===undefined?"—":v>=0.5?'<span class="tag cool">STRONG BUY</span>':v>=0.1?'<span class="tag cool">BUY</span>':
+    v<=-0.5?'<span class="tag hot">STRONG SELL</span>':v<=-0.1?'<span class="tag hot">SELL</span>':'<span class="tag on">NEUTRAL</span>';
+  const pc=(v,d=2)=>v===null||v===undefined?"—":`<span class="${v>0?'up':v<0?'dn':'fl'}">${v>0?"+":""}${(+v).toFixed(d)}%</span>`;
+  const maxVol=Math.max(...MARKET.map(x=>x.vol||0),0.01);
+  return `<div class="card" style="margin-bottom:16px">
+    <div class="hint" style="margin-bottom:10px">দৈনিক Volatility (Volatility.D) — কে সবচেয়ে বেশি নড়ছে</div>
+    ${barsChart([...MARKET].sort((a,b)=>(b.vol||0)-(a.vol||0)).slice(0,12)
+      .map(x=>({k:x.label,v:x.vol||0,c:x.vol>maxVol*0.6?"#ef4444":"#3b82f6"})),{dec:2})}</div>
+  <table><tr><th>Asset</th><th>দাম</th><th>1W</th><th>1M</th><th>3M</th><th>YTD</th><th>Vol.D</th><th>ATR</th><th>রেটিং</th></tr>
+  ${rows.map(r=>`<tr><td><b>${r.label}</b></td>
+    <td>${r.close!==null?(+r.close).toLocaleString(undefined,{maximumFractionDigits:2}):"—"}</td>
+    <td>${pc(r.w)}</td><td>${pc(r.m1)}</td><td>${pc(r.m3)}</td><td>${pc(r.ytd,1)}</td>
+    <td>${r.vol!==null?(+r.vol).toFixed(2)+"%":"—"}</td>
+    <td>${r.atr!==null?(+r.atr).toLocaleString(undefined,{maximumFractionDigits:2}):"—"}</td>
+    <td>${rt(r.rating)}</td></tr>`).join("")}</table>
+  <div class="note">সূত্র: TradingView scanner। <b>Vol.D</b> = দৈনিক volatility %। <b>ATR</b> = গড় সত্যিকার রেঞ্জ (পয়েন্টে)। <b>রেটিং</b> = TradingView-র technical rating (মুভিং এভারেজ + অসিলেটর মিলিয়ে) — এটা একটা সূচক, নিশ্চয়তা নয়।</div>`;
+}
+function renderSeason(){
+  if(!SEASON.length)return '<div class="load">সিজনালিটি ডেটা নেই।</div>';
+  return SEASON.map(s=>{
+    const mx=Math.max(...s.stats.map(x=>Math.abs(x.avg)),0.01);
+    return `<div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        <b style="font-size:14px">${s.label}</b>
+        <span class="hint">মাসিক গড় রিটার্ন · ${s.stats[0]?s.stats[0].n:0} বছরের ডেটা</span></div>
+      <div class="hm" style="grid-template-columns:repeat(12,minmax(40px,1fr))">
+        ${s.stats.map(x=>`<div class="c hd" style="font-size:10px">${MON[x.month-1]}</div>`).join("")}
+        ${s.stats.map(x=>`<div class="c" style="background:${x.avg>0?`rgba(16,185,129,${Math.min(.6,Math.abs(x.avg)/mx*.6+.08)})`:`rgba(239,68,68,${Math.min(.6,Math.abs(x.avg)/mx*.6+.08)})`}"
+          title="avg ${x.avg}% · median ${x.median}% · up ${x.win}% of ${x.n}y">${x.avg>0?"+":""}${x.avg.toFixed(1)}</div>`).join("")}
+        ${s.stats.map(x=>`<div style="font-size:9px;text-align:center;color:#5a6172">${x.win}%↑</div>`).join("")}
+      </div></div>`;}).join("")
+  +`<div class="note">সূত্র: FRED মাসিক সিরিজ, ১৯৭১ থেকে যতটা পাওয়া যায়। প্রতিটি ঘরে ওই মাসের <b>গড়</b> রিটার্ন, নিচে <b>কত % বছর</b> ওই মাসে পজিটিভ ছিল। সিজনালিটি একটা দুর্বল ঝোঁক — এটা একা কোনো সিদ্ধান্ত নয়। ⚠️ গোল্ড/সিলভারের মাল্টি-ইয়ার ফ্রি ডেটা নেই, তাই এখানে নেই।</div>`;
+}
+function renderScoreHist(){
+  if(!SCORE.length)return '<div class="load">স্কোর হিস্ট্রি নেই।</div>';
+  const rows=SCORE.map(x=>({date:x.date,actual:x.score,forecast:null}));
+  const last=SCORE[SCORE.length-1];
+  const ch=(x,k)=>SCORE.length>k?SCORE[SCORE.length-1-k]:null;
+  const band=v=>v>=5?'<span class="tag cool">BULLISH</span>':v<=-5?'<span class="tag hot">BEARISH</span>':'<span class="tag on">NEUTRAL</span>';
+  return `<div class="grid" style="margin-bottom:18px">
+    <div class="kpi"><div class="lb">Gold স্কোর (${last.date})</div><div class="vl ${last.score>0?'up':last.score<0?'dn':'fl'}">${last.score>0?"+":""}${last.score.toFixed(1)}</div>
+      <div class="dt">range −১৫…+১৫</div></div>
+    <div class="kpi"><div class="lb">Real yield</div><div class="vl">${last.real>0?"+":""}${last.real.toFixed(1)}</div><div class="dt">১০Y আসল ইল্ড momentum</div></div>
+    <div class="kpi"><div class="lb">Dollar</div><div class="vl">${last.dollar>0?"+":""}${last.dollar.toFixed(1)}</div><div class="dt">ডলার momentum</div></div>
+    <div class="kpi"><div class="lb">COT crowding</div><div class="vl">${last.cot>0?"+":""}${last.cot.toFixed(1)}</div><div class="dt">পজিশন ঠাসা কিনা</div></div></div>
+  <div class="card"><div class="chartwrap">${chart(rows,{unit:"",dec:1,base0:true,target:0,targetLabel:"Neutral",h:250})}</div>
+  <div class="note">প্রতি সপ্তাহের COT তারিখে হিসাব করা — শেষ ${SCORE.length} সপ্তাহ। তিনটা ভাগের যোগফল, প্রতিটা −৫…+৫। এটা <b>ভবিষ্যদ্বাণী নয়</b>; কোন দিকে ঝুঁকি জমছে তার ছবি। উপরের "Top Setups"-এ আজকের একই হিসাব দেখা যায়।</div></div>`;
+}
 function renderTops(){
   const s=Object.fromEntries(SERIES.map(x=>[x.series,x]));
   const real=s.DFII10,dx=s.DTWEXBGS,un=s.UNRATE,ic=s.ICSA;
@@ -563,6 +663,11 @@ function aboutText(p){
   if(p.about)return p.about;
   if(p.kind==="line")return `${p.title} — সূত্র: FRED (St. Louis Fed)। এটা একটা ধারাবাহিক (line) সিরিজ, রিলিজ-ভিত্তিক বার নয়।`;
   if(p.kind==="cot")return "CFTC Commitments of Traders — প্রতি সপ্তাহে মঙ্গলবারের ক্লোজে বড় ট্রেডারদের long/short পজিশন। এখানে Managed Money (হেজ ফান্ড ও স্পেকুলেটর) দেখানো হচ্ছে।";
+  if(p.kind==="cotidx")return "COT Index = শেষ ৫২ সপ্তাহের net position range-এর মধ্যে আজ কোথায় (০ = সবচেয়ে খালি, ১০০ = সবচেয়ে ভিড়)। ৮০-এর উপরে বা ২০-এর নিচে গেলে বাজার একদিকে ঠাসা — contrarian দিক থেকে দেখা হয়। Velocity দেখায় পজিশন কত দ্রুত বদলাচ্ছে।";
+  if(p.kind==="mktheat")return "এক নজরে সব মার্কেট — ধাতু, জ্বালানি, মুদ্রা, সূচক, ক্রিপ্টো, ইল্ড। ঘরের রং = আজকের % পরিবর্তন। সূত্র: TradingView scanner।";
+  if(p.kind==="momvol")return "কোন অ্যাসেট কতটা নড়ছে (Volatility.D, ATR) আর তার momentum (1W/1M/3M/YTD), সাথে TradingView-র technical rating।";
+  if(p.kind==="season")return "প্রতি মাসে ওই অ্যাসেট সাধারণত কেমন চলে — অনেক বছরের মাসিক রিটার্নের গড়। সিজনালিটি একটা দুর্বল ঝোঁক, একা কোনো সিদ্ধান্ত নয়।";
+  if(p.kind==="scorehist")return "সোনার সাপ্তাহিক স্কোরের ইতিহাস — real yield momentum + dollar momentum + COT crowding, প্রতিটা −৫…+৫, যোগফল −১৫…+১৫।";
   if(p.kind==="pc")return "CBOE-র দৈনিক put/call ratio — অপশন বাজারে কতটা হেজিং বনাম ঝুঁকি নেওয়া হচ্ছে।";
   return `${p.title} — সূত্র: TradingView economic calendar। বারগুলো রিলিজের actual, লাল লাইনটা তার forecast — তাই বার নীল হলে প্রত্যাশার চেয়ে বেশি, লাল হলে কম।`;
 }
@@ -571,7 +676,9 @@ function render(){
   $("#ttl").textContent=p.title||p.label;
   const srckind={line:"FRED (St. Louis Fed)",cot:"CFTC Commitments of Traders",pc:"CBOE daily market statistics",
     netvol:"CBOE daily market statistics",wallschart:"CBOE daily market statistics",
-    walls:"FastBull pending orders"}[p.kind]||"TradingView economic calendar";
+    walls:"FastBull pending orders",cotidx:"CFTC Commitments of Traders",
+    mktheat:"TradingView scanner",momvol:"TradingView scanner",
+    season:"FRED (St. Louis Fed) — monthly",scorehist:"FRED + CFTC (weekly)"}[p.kind]||"TradingView economic calendar";
   $("#src").textContent=`সূত্র: ${srckind} · ডেটা তৈরি ${META?META.built_utc:"…"}`;
   let html="";
   if(p.kind==="cal")html=renderCal(p);
@@ -584,6 +691,11 @@ function render(){
   else if(p.kind==="wallschart")html=renderOptWalls();
   else if(p.kind==="scanners")html=renderScanners();
   else if(p.kind==="heatmap")html=renderHeatmap();
+  else if(p.kind==="mktheat")html=renderMktHeat();
+  else if(p.kind==="momvol")html=renderMomVol();
+  else if(p.kind==="season")html=renderSeason();
+  else if(p.kind==="scorehist")html=renderScoreHist();
+  else if(p.kind==="cotidx")html=renderCotIdx();
   else if(p.kind==="tops")html=renderTops();
   else if(p.kind==="calendar")html=renderCalendar();
   if(["cal","line"].includes(p.kind)){
@@ -628,7 +740,8 @@ async function boot(){
   $("#rng").value=state.range;
   buildSide();
   const tries=[["meta.json",x=>META=x],["series.json",x=>SERIES=x],["cot.json",x=>COT=x],
-               ["options.json",x=>OPT=x],["walls.json",x=>WALLS=x]];
+               ["options.json",x=>OPT=x],["walls.json",x=>WALLS=x],["market.json",x=>MARKET=x],
+               ["season.json",x=>SEASON=x],["score_history.json",x=>SCORE=x]];
   for(const [f,set] of tries){try{set(await J("data/"+f));}catch(e){}}
   await cal("US");
   const h=(location.hash||"").replace("#","");

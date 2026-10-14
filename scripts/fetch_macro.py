@@ -148,21 +148,30 @@ def build_series():
 
 # ------------------------------------------------------------------------ COT
 COT_MARKETS = [
-    ("GOLD - COMMODITY EXCHANGE INC.", "Gold", "GC"),
-    ("SILVER - COMMODITY EXCHANGE INC.", "Silver", "SI"),
-    # "CRUDE OIL, LIGHT SWEET - NYMEX" is a dead series (ends 2022-02); the live
-    # WTI contract in this dataset is the financially-settled one.
-    ("WTI FINANCIAL CRUDE OIL - NEW YORK MERCANTILE EXCHANGE", "WTI Crude", "CL"),
-    ("E-MINI S&P 500 - CHICAGO MERCANTILE EXCHANGE", "E-mini S&P 500", "ES"),
+    # (resource, market name, label, code, long_field, short_field)
+    # The disaggregated "futures only" report (72hh-3qpy) carries m_money_* for
+    # commodities; index futures live in the financial-futures report (gpe5-46if)
+    # and use lev_money_* (leveraged funds) / asset_mgr_* instead.
+    ("72hh-3qpy", "GOLD - COMMODITY EXCHANGE INC.", "Gold", "GC",
+     "m_money_positions_long_all", "m_money_positions_short_all"),
+    ("72hh-3qpy", "SILVER - COMMODITY EXCHANGE INC.", "Silver", "SI",
+     "m_money_positions_long_all", "m_money_positions_short_all"),
+    # NOTE: "CRUDE OIL, LIGHT SWEET - NYMEX" is a DEAD series (ends 2022-02) and
+    # "WTI FINANCIAL CRUDE OIL" reports all-zero managed money.  WTI-PHYSICAL is
+    # the live crude series with real positioning.
+    ("72hh-3qpy", "WTI-PHYSICAL - NEW YORK MERCANTILE EXCHANGE", "WTI Crude", "CL",
+     "m_money_positions_long_all", "m_money_positions_short_all"),
+    ("gpe5-46if", "E-MINI S&P 500 - CHICAGO MERCANTILE EXCHANGE", "E-mini S&P 500", "ES",
+     "lev_money_positions_long", "lev_money_positions_short"),
 ]
 
 
 def fetch_cot():
     out = []
-    for market, label, code in COT_MARKETS:
+    for res, market, label, code, lf, sf in COT_MARKETS:
         # quote(safe="") is required: an unencoded "&" in a market name ("S&P 500")
         # splits the Socrata query into extra params and the request 400s.
-        q = ("https://publicreporting.cftc.gov/resource/72hh-3qpy.json"
+        q = (f"https://publicreporting.cftc.gov/resource/{res}.json"
              "?$where=market_and_exchange_names='{m}'"
              "&$order=report_date_as_yyyy_mm_dd%20DESC&$limit=60").format(
                  m=quote(market, safe=""))
@@ -177,16 +186,21 @@ def fetch_cot():
         hist = []
         for r in rows:
             try:
-                lng = float(r.get("m_money_positions_long_all") or 0)
-                sht = float(r.get("m_money_positions_short_all") or 0)
+                lng = float(r.get(lf) or 0)
+                sht = float(r.get(sf) or 0)
             except (TypeError, ValueError):
                 continue
             hist.append({"date": (r.get("report_date_as_yyyy_mm_dd") or "")[:10],
                          "long": lng, "short": sht, "net": lng - sht,
                          "oi": r.get("open_interest_all")})
         hist.reverse()
-        if hist:
-            out.append({"code": code, "label": label, "market": market, "history": hist})
+        # guard: a series that reports all-zero (or one flat value) positioning is
+        # the wrong contract name — drop it rather than draw a meaningless chart.
+        nets = {h["net"] for h in hist}
+        if not hist or (len(nets) <= 1 and not any(nets)):
+            print(f"  COT {code}: dropped (no usable positioning)", file=sys.stderr)
+            continue
+        out.append({"code": code, "label": label, "market": market, "history": hist})
     return out
 
 
@@ -295,6 +309,155 @@ def fetch_walls():
     return out
 
 
+# ------------------------------------------------------------------- markets
+SCAN_URL = "https://scanner.tradingview.com/global/scan"
+SCAN_HEADERS = {"Origin": "https://www.tradingview.com",
+                "Referer": "https://www.tradingview.com/",
+                "Content-Type": "application/json"}
+# (ticker, Bangla label, asset class) — first ticker that answers wins.
+MARKET_TICKERS = [
+    ("OANDA:XAUUSD", "Gold", "Metals"), ("OANDA:XAGUSD", "Silver", "Metals"),
+    ("TVC:SILVER", "Silver", "Metals"), ("TVC:PLATINUM", "Platinum", "Metals"),
+    ("COMEX:HG1!", "Copper", "Metals"), ("CAPITALCOM:COPPER", "Copper", "Metals"),
+    ("NYMEX:CL1!", "WTI Crude", "Energy"), ("NYMEX:BZ1!", "Brent", "Energy"),
+    ("ICEEUR:BRN1!", "Brent", "Energy"), ("NYMEX:NG1!", "Natural Gas", "Energy"),
+    ("TVC:DXY", "US Dollar Index", "FX"),
+    ("FX_IDC:EURUSD", "EUR/USD", "FX"), ("FX_IDC:USDJPY", "USD/JPY", "FX"),
+    ("FX_IDC:GBPUSD", "GBP/USD", "FX"), ("FX_IDC:AUDUSD", "AUD/USD", "FX"),
+    ("FX_IDC:USDCAD", "USD/CAD", "FX"), ("FX_IDC:USDCHF", "USD/CHF", "FX"),
+    ("FX_IDC:NZDUSD", "NZD/USD", "FX"),
+    ("SP:SPX", "S&P 500", "Indices"), ("NASDAQ:NDX", "Nasdaq 100", "Indices"),
+    ("DJ:DJI", "Dow 30", "Indices"), ("TVC:NI225", "Nikkei 225", "Indices"),
+    ("TVC:DEU40", "DAX 40", "Indices"), ("TVC:UKX", "FTSE 100", "Indices"),
+    ("TVC:HSI", "Hang Seng", "Indices"),
+    ("BINANCE:BTCUSDT", "Bitcoin", "Crypto"), ("BINANCE:ETHUSDT", "Ethereum", "Crypto"),
+    ("TVC:US10Y", "US 10Y Yield", "Rates"), ("TVC:US02Y", "US 2Y Yield", "Rates"),
+]
+SCAN_COLS = ["name", "close", "change", "Volatility.D", "ATR", "Recommend.All",
+             "Perf.W", "Perf.1M", "Perf.3M", "Perf.YTD"]
+
+
+def fetch_market():
+    """TradingView scanner — one POST returns close/change/vol/rating/performance
+    for every ticker.  This is the market-heatmap + momentum + volatility source."""
+    body = json.dumps({"symbols": {"tickers": [t for t, _, _ in MARKET_TICKERS],
+                                   "query": {"types": []}},
+                       "columns": SCAN_COLS})
+    tmp = os.path.join(DATA, ".scan.json")
+    open(tmp, "w").write(body)
+    p = subprocess.run(["curl", "-sSL", "--http1.1", "--max-time", "45", "-X", "POST",
+                        "-H", "Origin: https://www.tradingview.com",
+                        "-H", "Referer: https://www.tradingview.com/",
+                        "-H", "Content-Type: application/json",
+                        "--data-binary", "@" + tmp, SCAN_URL],
+                       capture_output=True, text=True)
+    os.remove(tmp)
+    if p.returncode != 0 or not p.stdout.strip():
+        raise RuntimeError(f"scan curl rc={p.returncode} {(p.stderr or '')[:100]}")
+    d = json.loads(p.stdout)
+    got = {r["s"]: r["d"] for r in (d.get("data") or [])}
+    seen, out = set(), []
+    for ticker, label, klass in MARKET_TICKERS:
+        if ticker not in got or label in seen:
+            continue
+        seen.add(label)
+        v = got[ticker]
+        out.append({"ticker": ticker, "label": label, "class": klass,
+                    "close": v[1], "change": v[2], "vol": v[3], "atr": v[4],
+                    "rating": v[5], "w": v[6], "m1": v[7], "m3": v[8], "ytd": v[9]})
+    return out
+
+
+# ---------------------------------------------------------------- seasonality
+# Monthly history from FRED (long, free, keyless).  Gold/silver have no free
+# multi-year daily series, so seasonality covers FX, energy, equities, crypto.
+SEASON_SERIES = [
+    ("DEXUSEU", "EUR/USD", False), ("DEXJPUS", "USD/JPY", True),
+    ("DEXUSUK", "GBP/USD", False), ("DEXUSAL", "AUD/USD", False),
+    ("DCOILWTICO", "WTI Crude", False), ("DCOILBRENTEU", "Brent", False),
+    ("SP500", "S&P 500", False),
+]
+
+
+def fetch_season():
+    out = []
+    for series, label, invert in SEASON_SERIES:
+        try:
+            rows = fred_series(series)
+        except Exception as e:                                         # noqa: BLE001
+            print(f"  season {label}: {type(e).__name__}", file=sys.stderr)
+            continue
+        if invert:
+            rows = [(d, 1.0 / v) for d, v in rows if v]
+        # month-end close per (year, month)
+        mm = {}
+        for d, v in rows:
+            mm[(int(d[:4]), int(d[5:7]))] = v
+        keys = sorted(mm)
+        buckets = {m: [] for m in range(1, 13)}
+        for i in range(1, len(keys)):
+            (y0, m0), (y1, m1) = keys[i - 1], keys[i]
+            if (y1 - y0) * 12 + (m1 - m0) != 1:      # skip gaps
+                continue
+            a, b = mm[keys[i - 1]], mm[keys[i]]
+            if a:
+                buckets[m1].append((b / a - 1) * 100)
+        stats = []
+        for m in range(1, 13):
+            v = buckets[m]
+            if not v:
+                continue
+            v_s = sorted(v)
+            stats.append({"month": m, "avg": round(sum(v) / len(v), 2),
+                          "median": round(v_s[len(v_s) // 2], 2),
+                          "win": round(sum(1 for x in v if x > 0) / len(v) * 100, 0),
+                          "n": len(v)})
+        if stats:
+            out.append({"label": label, "series": series, "stats": stats})
+    return out
+
+
+# ----------------------------------------------------------------- score history
+def build_score_history(cot):
+    """Weekly EdgeFinder-style score history for gold: real-yield momentum +
+    dollar momentum + COT crowding, each -5..+5, summed -15..+15."""
+    try:
+        real = dict(fred_series("DFII10"))
+        dollar = dict(fred_series("DTWEXBGS"))
+    except Exception as e:                                             # noqa: BLE001
+        print(f"  score: {type(e).__name__}", file=sys.stderr)
+        return []
+    gold = next((c for c in cot if c["code"] == "GC"), None)
+    if not gold:
+        return []
+    rk = sorted(real)
+    dk = sorted(dollar)
+
+    def ch_at(keys, mp, day, n):
+        past = [k for k in keys if k <= day]
+        if len(past) <= n:
+            return None
+        return mp[past[-1]] - mp[past[-1 - n]]
+
+    nets = [h["net"] for h in gold["history"]]
+    out = []
+    for i, h in enumerate(gold["history"]):
+        day = h["date"]
+        cr = ch_at(rk, real, day, 5)
+        cd = ch_at(dk, dollar, day, 5)
+        win = nets[max(0, i - 51):i + 1]
+        if cr is None or cd is None or len(win) < 10:
+            continue
+        mn, mx = min(win), max(win)
+        crowd = 0.0 if mx == mn else ((h["net"] - mn) / (mx - mn) - 0.5) * 10
+        c1 = max(-5, min(5, -cr * 1.4))
+        c2 = max(-5, min(5, -cd * 1.1))
+        c3 = max(-5, min(5, -crowd / 2))
+        out.append({"date": day, "real": round(c1, 2), "dollar": round(c2, 2),
+                    "cot": round(c3, 2), "score": round(c1 + c2 + c3, 2)})
+    return out
+
+
 # ------------------------------------------------------------------------ main
 def main():
     os.makedirs(DATA, exist_ok=True)
@@ -313,10 +476,13 @@ def main():
             print(f"calendar {code} FAILED: {e}", file=sys.stderr)
     meta["sources"]["tradingview_calendar"] = counts
 
+    cot = []
     for name, fn, fname in [("fred", build_series, "series.json"),
                             ("cot", fetch_cot, "cot.json"),
                             ("options", fetch_options, "options.json"),
-                            ("walls", fetch_walls, "walls.json")]:
+                            ("walls", fetch_walls, "walls.json"),
+                            ("market", fetch_market, "market.json"),
+                            ("season", fetch_season, "season.json")]:
         try:
             got = fn()
             if name == "fred":
@@ -325,11 +491,23 @@ def main():
                 meta["fred_detail"] = st
             else:
                 meta["sources"][name] = f"ok ({len(got)})"
+            if name == "cot":
+                cot = got
             json.dump(got, open(os.path.join(DATA, fname), "w"),
                       ensure_ascii=False, separators=(",", ":"))
         except Exception as e:                                     # noqa: BLE001
             meta["sources"][name] = f"ERROR {type(e).__name__}: {str(e)[:80]}"
             print(f"{name} FAILED: {e}", file=sys.stderr)
+
+    # score history depends on the COT fetch above
+    try:
+        sh = build_score_history(cot)
+        json.dump(sh, open(os.path.join(DATA, "score_history.json"), "w"),
+                  ensure_ascii=False, separators=(",", ":"))
+        meta["sources"]["score_history"] = f"ok ({len(sh)})"
+    except Exception as e:                                         # noqa: BLE001
+        meta["sources"]["score_history"] = f"ERROR {type(e).__name__}: {str(e)[:80]}"
+        print(f"score_history FAILED: {e}", file=sys.stderr)
 
     json.dump(meta, open(os.path.join(DATA, "meta.json"), "w"), ensure_ascii=False, indent=1)
     for f in sorted(os.listdir(DATA)):

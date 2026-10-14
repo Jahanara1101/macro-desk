@@ -13,7 +13,8 @@ const script = html.match(/<script>([\s\S]*?)<\/script>/)[1]
   // getters, not values: boot() REBINDS SERIES/COT/... after its awaits resolve.
   + '\n;globalThis.__X={get FLAT(){return FLAT},get state(){return state},render,' +
     'get CAL(){return CAL},get SERIES(){return SERIES},get COT(){return COT},' +
-    'get OPT(){return OPT},get WALLS(){return WALLS},get META(){return META}};';
+    'get OPT(){return OPT},get WALLS(){return WALLS},get META(){return META},' +
+    'get MARKET(){return MARKET},get SEASON(){return SEASON},get SCORE(){return SCORE}};';
 
 function El(tag) {
   return {
@@ -52,7 +53,7 @@ vm.runInContext(script, sandbox, { filename: 'page.js' });
 
 (async () => {
   for (let i = 0; i < 80; i++) {
-    if (sandbox.__X && sandbox.__X.META && sandbox.__X.SERIES.length) break;
+    if (sandbox.__X && sandbox.__X.META && sandbox.__X.MARKET.length) break;
     await new Promise(r => setTimeout(r, 100));
   }
   const X = sandbox.__X;
@@ -81,6 +82,8 @@ vm.runInContext(script, sandbox, { filename: 'page.js' });
   console.log('pages checked:', pages.length);
   console.log('data: series=' + X.SERIES.length + ' cot=' + X.COT.length +
               ' walls=' + X.WALLS.length + ' opt=' + (X.OPT ? 'yes' : 'no') +
+              ' market=' + X.MARKET.length + ' season=' + X.SEASON.length +
+              ' score=' + X.SCORE.length +
               ' cal_us=' + ((X.CAL || {}).cal_us || []).length);
   if (bad.length) { console.log('FAILURES:'); bad.forEach(b => console.log('  ' + b[0] + ' -> ' + b[1])); process.exit(1); }
   console.log('ALL PAGES RENDER OK');

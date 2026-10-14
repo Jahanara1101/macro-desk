@@ -1,22 +1,25 @@
 {
- "built_utc": "2026-10-14 07:41 UTC",
+ "built_utc": "2026-10-14 07:57 UTC",
  "sources": {
   "tradingview_calendar": {
    "US": 11797,
    "EU": 2208,
-   "GB": 2493,
-   "JP": 972,
-   "CN": 329,
-   "DE": 803,
+   "GB": 2804,
+   "JP": 1822,
+   "CN": 386,
+   "DE": 722,
    "CA": 645,
    "AU": 624,
-   "CH": 243,
-   "NZ": 403
+   "CH": 118,
+   "NZ": 287
   },
   "fred": "ok (14/14)",
-  "cot": "ok (3)",
+  "cot": "ok (4)",
   "options": "ok (8)",
-  "walls": "ok (2)"
+  "walls": "ok (2)",
+  "market": "ok (26)",
+  "season": "ok (7)",
+  "score_history": "ok (51)"
  },
  "countries": {
   "US": "United States",

@@ -1,51 +1,91 @@
-# Macro Desk — US অর্থনীতির খবর
+# Macro Desk — US অর্থনীতি ও মার্কেট ডেটা
 
-একটা সাইট যেখানে শুধু **US macro / economic news** থাকে — CPI, PPI, PCE, NFP, GDP, বেকারত্ব, Fed rate, yield, ডলার ইনডেক্স। EdgeFinder-এর "Economic Data" অংশটার মতো, কিন্তু শুধু নিউজ আর ডেটা — কোনো signal, entry, SL/TP নেই।
+EdgeFinder-এর "Economic Data" অংশটার মতো একটা ডেস্ক — বাঁ দিকে একই মেনু, ডান দিকে একই
+ধরনের চার্ট (বার = actual, লাল লাইন = forecast, সবুজ ড্যাশ = target), নিচে "About this graph"।
+শুধু **সংখ্যা আর খবর** — কোনো signal, entry, SL/TP নেই।
 
 **লাইভ:** https://jahanara1101.github.io/macro-desk/
 
-## কী দেখায়
+## সাইডবারে কী কী
 
-- **পরের বড় রিলিজ** — countdown সহ (বাংলা সময়)
-- **মূল সংখ্যা** — ১৪টা headline series, স্পার্কলাইন সহ
-- **ক্যালেন্ডার** — actual বনাম forecast, HOT / COOL / ON TARGET ব্যাজ
+**Sentiment & Positioning**
+- COT Report — CFTC, গোল্ড/সিলভার/WTI/ES-এর Managed Money net (৫২ সপ্তাহ)
+- Retail Sentiment — FastBull resting orders, buy বনাম sell
+- Put/Call Ratio — CBOE দৈনিক (total / index / equity / VIX)
+- Net Options Volume — call − put, প্রোডাক্ট অনুযায়ী
+- Put & Call Walls — call/put open interest
 
-## ডেটা সোর্স (দুটোই keyless, কোনো API key লাগে না)
+**Macro**
+- Macro Scanners — ১০ দেশের HIGH-importance ইভেন্ট
+- Economic Heatmap — কোন দিকে অর্থনীতি গরম/ঠান্ডা
+- Top Setups — real yield + dollar + COT crowding দিয়ে −১৫…+১৫ স্কোর
+- Economic Calendar — সামনের সব US ইভেন্ট
 
-| সোর্স | কী দেয় | এন্ডপয়েন্ট |
-|---|---|---|
-| TradingView economic calendar | US ইভেন্টের actual / forecast / previous | `economic-calendar.tradingview.com/events?from=…&to=…&countries=US` |
-| FRED (St. Louis Fed) | সিরিজের ইতিহাস (লেভেল) | `fred.stlouisfed.org/graph/fredgraph.csv?id=<SERIES>` |
+**Economic Data** — Growth (GDP, retail sales, ISM, durable goods…), Inflation
+(CPI/Core CPI/PPI/PCE — YoY ও MoM), Labor (NFP, ADP, unemployment, claims),
+Interest Rates & Yields (Fed + FRED line series), Housing & Consumer
+
+Country dropdown ১০টা দেশ, Range dropdown শেষ ১২/২৪/৩৬ রিলিজ বা সব।
+
+## ডেটা সোর্স (সব keyless, কোনো API key নেই)
+
+| সোর্স | কী দেয় |
+|---|---|
+| TradingView economic calendar | রিলিজ-ভিত্তিক actual / forecast / previous (`Origin`+`Referer` হেডার লাগে) |
+| FRED (St. Louis Fed) | ধারাবাহিক লেভেল সিরিজ (rates, yields, dollar, housing) |
+| CFTC public reporting | COT positioning |
+| CBOE daily market statistics | put/call ratio, call/put volume + open interest |
+| FastBull pending orders | রিটেইল resting buy/sell order |
 
 ## ফাইল
 
 ```
-scripts/fetch_macro.py   — ডেটা টানে, data/*.json লেখে
-scripts/update.sh        — fetch + git commit + push (ডেটা বদলালে তবেই commit)
-scripts/check_page.js    — হেডলেস চেক: পেজের নিজের JS আসল ডেটায় চালিয়ে যাচাই
-data/calendar.json       — US ইভেন্ট (past 45d + next 45d)
-data/indicators.json     — ১৪টা series, ১৮০ পয়েন্ট ইতিহাস
+scripts/fetch_macro.py   — সব সোর্স টানে, data/*.json লেখে
+scripts/update.sh        — fetch + commit + push (বদলালে তবেই commit)
+scripts/check_page.js    — হেডলেস চেক: পেজের নিজের JS আসল ডেটায় চালিয়ে ৪৯টা পেজ যাচাই
+data/cal_<cc>.json       — দেশভিত্তিক ইভেন্ট (~৩ বছর পিছনে + ১২০ দিন সামনে)
+data/series.json         — ১৪টা FRED সিরিজ
+data/cot.json            — COT history
+data/options.json        — CBOE daily
+data/walls.json          — FastBull resting orders
 data/meta.json           — কখন বানানো, কোন সোর্স কাজ করেছে
-index.html               — পুরো সাইট (vanilla JS, কোনো CDN নেই)
+index.html               — পুরো সাইট (vanilla JS + SVG, কোনো CDN নেই)
 ```
 
 ## নিজে চালাতে
 
 ```bash
-python3 scripts/fetch_macro.py     # ~১ সেকেন্ড
-node scripts/check_page.js         # সব চেক পাস করলে OK
+python3 scripts/fetch_macro.py     # ~১১ সেকেন্ড
+node scripts/check_page.js         # সব পেজ ঠিক থাকলে "ALL PAGES RENDER OK"
+node scripts/check_page.js /root/macro-desk --dump=cpi   # একটা পেজের লেখা দেখো
 bash scripts/update.sh             # fetch + publish
 ```
 
-## যেসব ফাঁদে ধাক্কা খেয়ে ঠিক করা হয়েছে
+## যে ফাঁদগুলোতে ধাক্কা খেয়ে ঠিক করা হয়েছে
 
-1. **FRED-কে browser User-Agent পাঠানো যাবে না।** Chrome UA দিলে FRED ০ byte ফেরত দেয় আর curl timeout পর্যন্ত ঝুলে থাকে। curl-এর ডিফল্ট UA-তে দুটো সোর্সই তৎক্ষণাৎ সাড়া দেয়।
-2. **FRED HTTP/2 মাঝপথে কেটে দেয়** (`curl rc=92`), তাই `--http1.1` বাধ্যতামূলক।
-3. **YoY কখনো রো-ইনডেক্স দিয়ে হিসাব করা যাবে না** — সিরিজে মাস বাদ পড়তে পারে (`CPIAUCNS`-এ 2025-10 গায়েব, সরকারি shutdown-এর ফাঁক), তখন `rows[i-12]` মানে ১২ মাস নয় ⇒ CPI 3.40%-এর জায়গায় 3.69% আসে। তারিখ মিলিয়ে (`(year-1, same month)`) হিসাব করো।
-4. **সঠিক সিরিজ বাছাই জরুরি:** headline CPI = **NSA** (`CPIAUCNS`, `CPILFENS`), SA সিরিজ (`CPIAUCSL`) ভিন্ন সংখ্যা দেয়। PPI headline = **`PPIFIS`** (Final Demand); `PPIACO` (All Commodities) ৯.৮৫% দেখায়, headline ৫.৪১%।
+1. **FRED-কে browser User-Agent পাঠানো যাবে না।** Chrome UA দিলে FRED ০ byte ফেরত দেয় আর
+   curl timeout পর্যন্ত ঝুলে থাকে (একবার ৪ মিনিট ২৭ সেকেন্ড লাগেছিল)। curl-এর ডিফল্ট UA-তে
+   সব সোর্স তৎক্ষণাৎ সাড়া দেয়।
+2. **FRED HTTP/2 মাঝপথে কেটে দেয়** (`curl rc=92`) ⇒ `--http1.1` বাধ্যতামূলক।
+3. **CBOE পেজ একটা Next.js app** — সংখ্যাগুলো `self.__next_f.push([1,"…"])` RSC flight
+   stream-এ থাকে এবং **একটা অবজেক্ট মাঝখানে কেটে দুই চাঙ্কে ভাগ করা থাকে** (একবার `prevTradin`
+   / পরের চাঙ্কে `gDay":"2026-10-13"`)। তাই আগে সব চাঙ্ক জোড়া লাগাও, তারপর পার্স করো।
+   শুধু `"` খুঁজে কাটলে ভুল জায়গায় কাটা পড়ে।
+4. **CFTC-র market name URL-encode করতে হবে `quote(safe="")` দিয়ে** — `S&P 500`-এর `&`
+   না এনকোড করলে Socrata query ভেঙে 400 দেয়; আর `order=… DESC`-এর space-ও `%20` হতে হবে।
+5. **CRUDE OIL, LIGHT SWEET (NYMEX) সিরিজটা ২০২২-০২-এ শেষ** — লাইভ WTI কনট্র্যাক্ট এই
+   ডেটাসেটে `WTI FINANCIAL CRUDE OIL - NEW YORK MERCANTILE EXCHANGE`।
+6. **YoY কখনো রো-ইনডেক্স দিয়ে নয়** — সিরিজে মাস বাদ পড়তে পারে (`CPIAUCNS`-এ 2025-10 গায়েব,
+   shutdown-এর ফাঁক), তখন `rows[i-12]` মানে ১২ মাস নয় ⇒ CPI ৩.৪০%-এর জায়গায় ৩.৬৯% আসে।
+   তারিখ মিলিয়ে (`(year-1, same month)`) হিসাব করো।
+7. **সিরিজ বাছাই:** headline CPI = **NSA** (`CPIAUCNS`/`CPILFENS`)। PPI headline = `PPIFIS`
+   (Final Demand); `PPIACO` ৯.৮৫% দেখায়, headline ৫.৪১%।
 
 ## সীমা
 
-- সাইট **প্রতিদিন** রিফ্রেশ হয় (cron), রিয়েল-টাইম নয় — release-এর পর actual বসতে কয়েক মিনিট লাগতে পারে।
-- FRED সিরিজে প্রকাশ-বিলম্ব আছে (CPI সাধারণত মাসের মাঝে, GDP quarterly)।
+- প্রতি ১৫ মিনিটে cron রিফ্রেশ করে, **রিয়েল-টাইম নয়** — release-এর পর actual বসতে দেরি হয়।
+- FRED-এ প্রকাশ-বিলম্ব আছে (CPI মাসের মাঝে, GDP ত্রৈমাসিক)।
+- সোনার **অপশন** wall পাওয়া যায় না (CME, ফ্রি রিয়েল-টাইম নেই) — সোনার resting order
+  wall দেখতে Retail Sentiment।
+- **AAII Sentiment** ফ্রি সোর্স নেই, তাই সাইডবারে রাখা হয়নি।
 - এটা **তথ্য**, বিনিয়োগ পরামর্শ নয়। এখানে কোনো trade setup নেই।

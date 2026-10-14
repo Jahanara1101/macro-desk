@@ -61,15 +61,22 @@ def http_get(url, headers=None, timeout=60, retries=3):
 def fetch_calendar(country):
     now = datetime.now(timezone.utc)
     start, end = now - timedelta(days=CAL_HISTORY_DAYS), now + timedelta(days=CAL_FUTURE_DAYS)
-    out, seen, cur = [], set(), start
+    out, seen, cur, last = [], set(), start, None
     while cur < end:
         nxt = min(cur + timedelta(days=CHUNK_DAYS), end)
         url = TV_URL.format(f=cur.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
                             t=nxt.strftime("%Y-%m-%dT%H:%M:%S.000Z"), c=country)
-        try:
-            d = json.loads(http_get(url, headers=CAL_HEADERS, timeout=45))
-        except Exception as e:                                     # noqa: BLE001
-            print(f"  {country} {cur:%Y-%m}: {type(e).__name__}", file=sys.stderr)
+        raw = None
+        for _ in range(3):                      # a few windows fail transiently
+            try:
+                raw = http_get(url, headers=CAL_HEADERS, timeout=45)
+                d = json.loads(raw)
+                break
+            except Exception as e:                                 # noqa: BLE001
+                d = None
+                last = e
+        if d is None:
+            print(f"  {country} {cur:%Y-%m}: {type(last).__name__}", file=sys.stderr)
             cur = nxt
             continue
         for e in (d.get("result") or []):

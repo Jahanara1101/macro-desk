@@ -9,7 +9,8 @@ EdgeFinder-এর "Economic Data" অংশটার মতো একটা ড�
 ## সাইডবারে কী কী
 
 **Sentiment & Positioning**
-- COT Report — CFTC, গোল্ড/সিলভার/WTI/ES-এর Managed Money net (৫২ সপ্তাহ)
+- COT Report — CFTC, গোল্ড/সিলভার/WTI/E-mini S&P-এর net positioning (৬০ সপ্তাহ)
+- COT Index & Velocity — ৫২ সপ্তাহের range-এ index + ৪/১৩/২৬ সপ্তাহের velocity
 - Retail Sentiment — FastBull resting orders, buy বনাম sell
 - Put/Call Ratio — CBOE দৈনিক (total / index / equity / VIX)
 - Net Options Volume — call − put, প্রোডাক্ট অনুযায়ী
@@ -18,7 +19,11 @@ EdgeFinder-এর "Economic Data" অংশটার মতো একটা ড�
 **Macro**
 - Macro Scanners — ১০ দেশের HIGH-importance ইভেন্ট
 - Economic Heatmap — কোন দিকে অর্থনীতি গরম/ঠান্ডা
-- Top Setups — real yield + dollar + COT crowding দিয়ে −১৫…+১৫ স্কোর
+- Market Heatmap — ২৬টা অ্যাসেট (ধাতু/জ্বালানি/FX/সূচক/ক্রিপ্টো/ইল্ড), এক নজরে
+- Momentum & Volatility — 1W/1M/3M/YTD + Volatility.D + ATR + technical rating
+- Seasonality — প্রতি মাসের গড় রিটার্ন + কত % বছর পজিটিভ
+- Score History — সোনার সাপ্তাহিক −১৫…+১৫ স্কোর (৫১ সপ্তাহ)
+- Top Setups — real yield + dollar + COT crowding দিয়ে আজকের স্কোর
 - Economic Calendar — সামনের সব US ইভেন্ট
 
 **Economic Data** — Growth (GDP, retail sales, ISM, durable goods…), Inflation
@@ -32,8 +37,9 @@ Country dropdown ১০টা দেশ, Range dropdown শেষ ১২/২৪/
 | সোর্স | কী দেয় |
 |---|---|
 | TradingView economic calendar | রিলিজ-ভিত্তিক actual / forecast / previous (`Origin`+`Referer` হেডার লাগে) |
-| FRED (St. Louis Fed) | ধারাবাহিক লেভেল সিরিজ (rates, yields, dollar, housing) |
-| CFTC public reporting | COT positioning |
+| TradingView scanner | ২৬টা অ্যাসেটের দাম / % change / volatility / rating (এক POST) |
+| FRED (St. Louis Fed) | ধারাবাহিক লেভেল সিরিজ (rates, yields, dollar, housing) + মাসিক সিজনালিটি |
+| CFTC public reporting | COT positioning (commodities `72hh-3qpy`, index futures `gpe5-46if`) |
 | CBOE daily market statistics | put/call ratio, call/put volume + open interest |
 | FastBull pending orders | রিটেইল resting buy/sell order |
 

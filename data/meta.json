@@ -1,0 +1,23 @@
+{
+ "built_utc": "2026-10-14 04:42 UTC",
+ "sources": {
+  "tradingview_calendar": "ok (871 events)",
+  "fred": "ok (14/14 series)"
+ },
+ "fred_detail": {
+  "CPIAUCNS": "ok",
+  "CPILFENS": "ok",
+  "PCEPI": "ok",
+  "PCEPILFE": "ok",
+  "PPIFIS": "ok",
+  "PAYEMS": "ok",
+  "UNRATE": "ok",
+  "ICSA": "ok",
+  "A191RL1Q225SBEA": "ok",
+  "FEDFUNDS": "ok",
+  "DGS10": "ok",
+  "DGS2": "ok",
+  "DFII10": "ok",
+  "DTWEXBGS": "ok"
+ }
+}

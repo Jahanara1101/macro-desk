@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro Desk — US অর্থনীতির খবর</title>
+<style>
+  :root{
+    --bg:#0b0d11; --panel:#12151c; --panel2:#171b24; --line:#242a36;
+    --txt:#e6e9ef; --dim:#8b93a7; --dim2:#5d6478;
+    --hot:#ff5d5d; --cool:#3ddc97; --neut:#7c869c;
+    --gold:#f0b429; --blue:#4da3ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font-family:"Noto Sans Bengali","Segoe UI",system-ui,-apple-system,sans-serif;
+       font-size:15px;line-height:1.55}
+  a{color:var(--blue);text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 60px}
+
+  header{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;
+         border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:18px}
+  h1{font-size:21px;margin:0;font-weight:700}
+  h1 span{color:var(--gold)}
+  .stamp{color:var(--dim);font-size:12.5px;margin-left:auto;text-align:right}
+  .stamp b{color:var(--cool);font-weight:600}
+
+  h2{font-size:15px;margin:26px 0 10px;color:var(--gold);font-weight:700;
+     text-transform:uppercase;letter-spacing:.6px}
+  h2 small{color:var(--dim2);text-transform:none;letter-spacing:0;font-weight:400;font-size:12px}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:11px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 13px}
+  .card .k{color:var(--dim);font-size:12px;margin-bottom:5px}
+  .card .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+  .card .d{font-size:12px;color:var(--dim2);margin-top:3px;font-variant-numeric:tabular-nums}
+  .card .spark{margin-top:7px;display:block}
+  .up{color:var(--hot)} .down{color:var(--cool)} .flat{color:var(--neut)}
+
+  /* upcoming release strip */
+  .next{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:11px}
+  .ev{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--gold);
+      border-radius:9px;padding:11px 12px}
+  .ev.past{border-left-color:var(--dim2);opacity:.72}
+  .ev .t{font-weight:600;font-size:14px;margin-bottom:2px}
+  .ev .when{color:var(--dim);font-size:12px;margin-bottom:7px}
+  .ev .row{display:flex;gap:14px;font-size:13px;font-variant-numeric:tabular-nums}
+  .ev .row span{color:var(--dim);font-size:11px;display:block}
+  .ev .row b{font-weight:700}
+  .cd{color:var(--gold);font-weight:600}
+
+  /* table */
+  .bar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:10px}
+  button{background:var(--panel);color:var(--txt);border:1px solid var(--line);
+         border-radius:20px;padding:5px 13px;font-size:13px;cursor:pointer;font-family:inherit}
+  button.on{background:var(--gold);color:#101216;border-color:var(--gold);font-weight:700}
+  input{background:var(--panel);border:1px solid var(--line);color:var(--txt);
+        border-radius:20px;padding:6px 13px;font-size:13px;font-family:inherit;min-width:150px}
+  .tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{background:var(--panel2);color:var(--dim);text-align:left;padding:9px 11px;
+     font-weight:600;font-size:12px;white-space:nowrap;position:sticky;top:0}
+  td{padding:8px 11px;border-top:1px solid var(--line);white-space:nowrap;
+     font-variant-numeric:tabular-nums}
+  tr:hover td{background:#151922}
+  td.ttl{white-space:normal;min-width:190px}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px}
+  .i1{background:var(--hot)} .i0{background:var(--gold)} .im{background:var(--dim2)}
+  .tag{font-size:11px;padding:1px 7px;border-radius:20px;font-weight:700;margin-left:6px}
+  .tag.hot{background:rgba(255,93,93,.16);color:var(--hot)}
+  .tag.cool{background:rgba(61,220,151,.16);color:var(--cool)}
+  .tag.same{background:rgba(124,134,156,.16);color:var(--neut)}
+  .pend{color:var(--dim2)}
+
+  footer{margin-top:34px;border-top:1px solid var(--line);padding-top:14px;
+         color:var(--dim2);font-size:12px;line-height:1.7}
+  .note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--blue);
+        border-radius:9px;padding:11px 13px;color:var(--dim);font-size:12.5px;margin-top:22px}
+  .err{color:var(--hot)}
+  @media(max-width:560px){.card .v{font-size:19px} h1{font-size:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Macro Desk <span>·</span> US অর্থনীতির খবর</h1>
+    <div class="stamp" id="stamp">লোড হচ্ছে…</div>
+  </header>
+
+  <h2>পরের বড় রিলিজ <small>— যেগুলো বাজারে ধাক্কা দেয়</small></h2>
+  <div class="next" id="next"></div>
+
+  <h2>মূল সংখ্যাগুলো <small>— সর্বশেষ রিডিং</small></h2>
+  <div class="cards" id="cards"></div>
+
+  <h2>ক্যালেন্ডার <small>— actual বনাম forecast</small></h2>
+  <div class="bar">
+    <button class="on" data-f="hi">শুধু বড় নিউজ</button>
+    <button data-f="all">সব</button>
+    <button data-f="done">যা হয়ে গেছে</button>
+    <button data-f="pending">যা বাকি</button>
+    <input id="q" placeholder="খুঁজো… CPI, NFP, GDP">
+  </div>
+  <div class="tblwrap">
+    <table>
+      <thead><tr>
+        <th>সময়</th><th>নিউজ</th><th>Period</th>
+        <th>Actual</th><th>Forecast</th><th>Previous</th><th>বনাম Forecast</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <b>কীভাবে পড়বে:</b> 🔴 <b>HOT</b> = forecast-এর চেয়ে বেশি (inflation-এ এটা hawkish ⇒ ডলার↑ / গোল্ড↓) ·
+    🟢 <b>COOL</b> = forecast-এর চেয়ে কম · ⚪ <b>ON TARGET</b> = মিলে গেছে।
+    সময়গুলো <b>UTC</b>-এ; ঢাকার জন্য <b>+৬ ঘণ্টা</b> যোগ করো।
+  </div>
+
+  <footer>
+    <div id="srcs">—</div>
+    <div style="margin-top:8px">
+      ডেটা: TradingView economic calendar (US) · FRED (St. Louis Fed)।
+      সব keyless পাবলিক এন্ডপয়েন্ট, কোনো API key লাগে না।
+    </div>
+    <div style="margin-top:8px">
+      ⚠️ এটা তথ্যের সাইট, বিনিয়োগ পরামর্শ নয়। কোনো entry/SL/TP এখানে নেই — এটা signal নয়, শুধু নিউজ আর ডেটা।
+    </div>
+  </footer>
+</div>
+
+<script>
+const UTC2DHAKA = 6;
+const fmtN = v => (v === null || v === undefined) ? '—'
+  : (Math.abs(v) >= 1000 ? v.toLocaleString('en-US',{maximumFractionDigits:2})
+                         : (Number.isInteger(v) ? v : v.toFixed(2)));
+
+// inflation-type: higher than forecast = hawkish (bad for gold)
+const INFL = /inflation|CPI|PPI|PCE|price index|earnings|wages/i;
+const WEAK = /unemployment|jobless|claims|layoff|job cuts/i;
+
+function polarity(title){
+  if (WEAK.test(title)) return 'inverse';   // higher = weaker
+  if (INFL.test(title)) return 'hot';       // higher = hotter inflation
+  return 'strong';                          // higher = stronger economy
+}
+function verdict(title, actual, forecast){
+  if (actual === null || actual === undefined || forecast === null || forecast === undefined) return null;
+  const d = actual - forecast;
+  if (Math.abs(d) < 1e-9) return {k:'same', t:'ON TARGET'};
+  const p = polarity(title);
+  if (p === 'hot')    return d > 0 ? {k:'hot',  t:'HOT'}  : {k:'cool', t:'COOL'};
+  if (p === 'inverse')return d > 0 ? {k:'cool', t:'WEAK'} : {k:'hot',  t:'TIGHT'};
+  return d > 0 ? {k:'cool', t:'STRONG'} : {k:'hot', t:'SOFT'};
+}
+
+function dstr(iso){
+  const d = new Date(iso);
+  const dh = new Date(d.getTime() + UTC2DHAKA*3600e3);
+  return d.toISOString().slice(0,10) + ' ' + d.toISOString().slice(11,16) +
+         ' UTC · ' + dh.toISOString().slice(11,16) + ' ঢাকা';
+}
+function countdown(iso){
+  const ms = new Date(iso) - Date.now();
+  if (ms < 0) return null;
+  const h = Math.floor(ms/3600e3), m = Math.floor(ms%3600e3/60e3);
+  if (h >= 48) return Math.floor(h/24) + ' দিন';
+  if (h >= 1)  return h + ' ঘণ্টা ' + m + ' মিনিট';
+  return m + ' মিনিট';
+}
+
+let CAL = [], IND = [], FILTER = 'hi';
+
+function spark(hist, w=180, h=38){
+  if (!hist || hist.length < 2) return '';
+  const vs = hist.map(p => p[1]);
+  const mn = Math.min(...vs), mx = Math.max(...vs), rg = (mx - mn) || 1;
+  const pts = vs.map((v,i) => {
+    const x = (i/(vs.length-1))*w;
+    const y = h - ((v-mn)/rg)*(h-6) - 3;
+    return x.toFixed(1)+','+y.toFixed(1);
+  }).join(' ');
+  const last = vs[vs.length-1], prev = vs[vs.length-2];
+  const c = last > prev ? 'var(--hot)' : last < prev ? 'var(--cool)' : 'var(--neut)';
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <polyline points="${pts}" fill="none" stroke="${c}" stroke-width="1.8"
+      stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
+function renderCards(){
+  document.getElementById('cards').innerHTML = IND.map(s => {
+    const chg = (s.prev === null || s.prev === undefined) ? null : s.latest - s.prev;
+    const cls = chg === null ? 'flat' : chg > 0 ? 'up' : chg < 0 ? 'down' : 'flat';
+    const sign = chg === null ? '' : (chg > 0 ? '▲ +' : chg < 0 ? '▼ ' : '· ') + fmtN(chg);
+    return `<div class="card">
+      <div class="k">${s.label_bn} <span style="color:var(--dim2)">${s.unit}</span></div>
+      <div class="v">${fmtN(s.latest)}<span style="font-size:13px;color:var(--dim2)">${s.unit==='%'?'%':''}</span></div>
+      <div class="d">${s.latest_date} · <span class="${cls}">${sign}</span></div>
+      ${spark(s.history)}
+    </div>`;
+  }).join('') || '<div class="card err">FRED ডেটা লোড হয়নি</div>';
+}
+
+function renderNext(){
+  const now = Date.now();
+  const hi = CAL.filter(e => e.importance === 1);
+  const fut = hi.filter(e => new Date(e.date).getTime() > now).slice(0, 6);
+  const rec = hi.filter(e => new Date(e.date).getTime() <= now).slice(-3).reverse();
+  const list = [...fut, ...rec];
+  document.getElementById('next').innerHTML = list.map(e => {
+    const isPast = new Date(e.date).getTime() <= now;
+    const cd = countdown(e.date);
+    const v = verdict(e.title, e.actual, e.forecast);
+    return `<div class="ev ${isPast?'past':''}">
+      <div class="t">${e.title}</div>
+      <div class="when">${dstr(e.date)}${cd ? ' · <span class="cd">' + cd + ' বাকি</span>' : ''}</div>
+      <div class="row">
+        <div><span>ACTUAL</span><b>${e.actual===null?'<i class="pend">বাকি</i>':fmtN(e.actual)}</b></div>
+        <div><span>FORECAST</span><b>${fmtN(e.forecast)}</b></div>
+        <div><span>PREVIOUS</span><b>${fmtN(e.previous)}</b></div>
+      </div>
+      ${v ? `<div style="margin-top:6px"><span class="tag ${v.k}">${v.t}</span></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderRows(){
+  const now = Date.now();
+  const q = (document.getElementById('q').value || '').toLowerCase().trim();
+  let rows = CAL.slice();
+  if (FILTER === 'hi')      rows = rows.filter(e => e.importance === 1);
+  if (FILTER === 'done')    rows = rows.filter(e => e.actual !== null && e.actual !== undefined);
+  if (FILTER === 'pending') rows = rows.filter(e => e.actual === null || e.actual === undefined);
+  if (q) rows = rows.filter(e => (e.title+' '+(e.indicator||'')+' '+(e.period||'')).toLowerCase().includes(q));
+  rows.sort((a,b) => new Date(b.date) - new Date(a.date));
+  rows = rows.slice(0, 220);
+
+  document.getElementById('rows').innerHTML = rows.map(e => {
+    const v = verdict(e.title, e.actual, e.forecast);
+    const dot = e.importance === 1 ? 'i1' : e.importance === 0 ? 'i0' : 'im';
+    const isPast = new Date(e.date).getTime() <= now;
+    return `<tr>
+      <td style="color:var(--dim)">${e.date.slice(5,10)} ${e.date.slice(11,16)}${isPast?'':' <span class="cd">⏳</span>'}</td>
+      <td class="ttl"><span class="dot ${dot}"></span>${e.title}</td>
+      <td style="color:var(--dim2)">${e.period||''}</td>
+      <td>${(e.actual===null||e.actual===undefined)?'<span class="pend">—</span>':fmtN(e.actual)}</td>
+      <td style="color:var(--dim)">${fmtN(e.forecast)}</td>
+      <td style="color:var(--dim2)">${fmtN(e.previous)}</td>
+      <td>${v?`<span class="tag ${v.k}">${v.t}</span>`:'<span class="pend">—</span>'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="color:var(--dim2)">কিছু পাওয়া গেল না</td></tr>';
+}
+
+async function boot(){
+  try{
+    const [c, i, m] = await Promise.all([
+      fetch('data/calendar.json').then(r => r.json()),
+      fetch('data/indicators.json').then(r => r.json()),
+      fetch('data/meta.json').then(r => r.json()).catch(() => null),
+    ]);
+    CAL = c; IND = i;
+    document.getElementById('stamp').innerHTML =
+      `ডেটা আপডেট: <b>${(m&&m.built_utc)||'—'}</b><br>নিজে থেকেই রিফ্রেশ হয়`;
+    document.getElementById('srcs').textContent =
+      (m && m.sources) ? Object.entries(m.sources).map(([k,v]) => `${k}: ${v}`).join(' · ') : '—';
+  }catch(err){
+    document.getElementById('stamp').innerHTML = '<span class="err">ডেটা লোড হয়নি</span>';
+    console.error(err);
+  }
+  renderNext(); renderCards(); renderRows();
+}
+
+document.querySelectorAll('button[data-f]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('button[data-f]').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); FILTER = b.dataset.f; renderRows();
+});
+document.getElementById('q').oninput = renderRows;
+boot();
+setInterval(() => { renderNext(); renderRows(); }, 60000);
+</script>
+</body>
+</html>

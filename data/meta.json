@@ -1,21 +1,21 @@
 {
- "built_utc": "2026-10-15 22:05 UTC",
+ "built_utc": "2026-10-15 22:21 UTC",
  "sources": {
   "tradingview_calendar": {
    "US": 11822,
    "EU": 2206,
    "GB": 2806,
    "JP": 2832,
-   "CN": 1054,
-   "DE": 2249,
-   "CA": 1468,
-   "AU": 1606,
-   "CH": 339,
-   "NZ": 833
+   "CN": 833,
+   "DE": 2016,
+   "CA": 1657,
+   "AU": 1467,
+   "CH": 399,
+   "NZ": 900
   },
   "fred": "ok (14/14)",
   "cot": "ok (4)",
-  "options": "ok (8)",
+  "options": "ERROR RuntimeError: CBOE flight chunks not found",
   "walls": "ok (2)",
   "market": "ok (26)",
   "season": "ok (7)",

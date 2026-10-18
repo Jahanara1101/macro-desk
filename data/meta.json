@@ -1,5 +1,5 @@
 {
- "built_utc": "2026-10-18 09:01 UTC",
+ "built_utc": "2026-10-18 09:17 UTC",
  "sources": {
   "tradingview_calendar": {
    "US": 11791,
@@ -10,8 +10,8 @@
    "DE": 2246,
    "CA": 1860,
    "AU": 1840,
-   "CH": 591,
-   "NZ": 1182
+   "CH": 450,
+   "NZ": 673
   },
   "fred": "ok (14/14)",
   "cot": "ok (4)",

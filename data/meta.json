@@ -1,25 +1,25 @@
 {
- "built_utc": "2026-10-21 14:53 UTC",
+ "built_utc": "2026-10-21 15:09 UTC",
  "sources": {
   "tradingview_calendar": {
    "US": 11797,
    "EU": 2204,
    "GB": 2807,
-   "JP": 2513,
-   "CN": 929,
-   "DE": 1751,
-   "CA": 1462,
-   "AU": 1446,
-   "CH": 408,
-   "NZ": 772
+   "JP": 2505,
+   "CN": 704,
+   "DE": 1740,
+   "CA": 1180,
+   "AU": 1656,
+   "CH": 514,
+   "NZ": 1043
   },
-  "fred": "ok (14/14)",
+  "fred": "ok (0/14)",
   "cot": "ok (4)",
   "options": "ok (8)",
   "walls": "ok (2)",
   "market": "ok (26)",
-  "season": "ok (7)",
-  "score_history": "ok (51)"
+  "season": "ok (0)",
+  "score_history": "ok (0)"
  },
  "countries": {
   "US": "United States",
@@ -34,19 +34,19 @@
   "NZ": "New Zealand"
  },
  "fred_detail": {
-  "FEDFUNDS": "ok",
-  "DGS3MO": "ok",
-  "DGS2": "ok",
-  "DGS10": "ok",
-  "DFII10": "ok",
-  "T10YIE": "ok",
-  "DTWEXBGS": "ok",
-  "UNRATE": "ok",
-  "ICSA": "ok",
-  "UMCSENT": "ok",
-  "TOTALSA": "ok",
-  "HOUST": "ok",
-  "CSUSHPINSA": "ok",
-  "INDPRO": "ok"
+  "FEDFUNDS": "empty",
+  "DGS3MO": "empty",
+  "DGS2": "empty",
+  "DGS10": "empty",
+  "DFII10": "empty",
+  "T10YIE": "empty",
+  "DTWEXBGS": "empty",
+  "UNRATE": "empty",
+  "ICSA": "empty",
+  "UMCSENT": "empty",
+  "TOTALSA": "empty",
+  "HOUST": "empty",
+  "CSUSHPINSA": "empty",
+  "INDPRO": "empty"
  }
 }

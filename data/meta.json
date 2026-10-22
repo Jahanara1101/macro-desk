@@ -1,19 +1,19 @@
 {
- "built_utc": "2026-10-22 04:45 UTC",
+ "built_utc": "2026-10-22 05:08 UTC",
  "sources": {
   "tradingview_calendar": {
    "US": 11799,
    "EU": 2204,
    "GB": 2807,
-   "JP": 2834,
-   "CN": 1047,
-   "DE": 2250,
-   "CA": 1856,
-   "AU": 1843,
-   "CH": 592,
-   "NZ": 1189
+   "JP": 2217,
+   "CN": 709,
+   "DE": 1748,
+   "CA": 1189,
+   "AU": 1611,
+   "CH": 331,
+   "NZ": 767
   },
-  "fred": "ok (11/14)",
+  "fred": "ok (14/14)",
   "cot": "ok (4)",
   "options": "ok (8)",
   "walls": "ok (2)",
@@ -35,9 +35,9 @@
  },
  "fred_detail": {
   "FEDFUNDS": "ok",
-  "DGS3MO": "empty",
-  "DGS2": "ERROR RuntimeError: curl rc=28 curl: (28) Operation timed out after 45002 milliseconds with 0 bytes ",
-  "DGS10": "ERROR RuntimeError: curl rc=28 curl: (28) Operation timed out after 45001 milliseconds with 0 bytes ",
+  "DGS3MO": "ok",
+  "DGS2": "ok",
+  "DGS10": "ok",
   "DFII10": "ok",
   "T10YIE": "ok",
   "DTWEXBGS": "ok",

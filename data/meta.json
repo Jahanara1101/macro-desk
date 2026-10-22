@@ -1,5 +1,5 @@
 {
- "built_utc": "2026-10-22 04:29 UTC",
+ "built_utc": "2026-10-22 04:45 UTC",
  "sources": {
   "tradingview_calendar": {
    "US": 11799,
@@ -13,13 +13,13 @@
    "CH": 592,
    "NZ": 1189
   },
-  "fred": "ok (0/14)",
+  "fred": "ok (11/14)",
   "cot": "ok (4)",
   "options": "ok (8)",
   "walls": "ok (2)",
   "market": "ok (26)",
-  "season": "ok (0)",
-  "score_history": "ok (0)"
+  "season": "ok (7)",
+  "score_history": "ok (51)"
  },
  "countries": {
   "US": "United States",
@@ -34,19 +34,19 @@
   "NZ": "New Zealand"
  },
  "fred_detail": {
-  "FEDFUNDS": "empty",
+  "FEDFUNDS": "ok",
   "DGS3MO": "empty",
-  "DGS2": "empty",
-  "DGS10": "empty",
-  "DFII10": "empty",
-  "T10YIE": "empty",
-  "DTWEXBGS": "empty",
-  "UNRATE": "empty",
-  "ICSA": "empty",
-  "UMCSENT": "empty",
-  "TOTALSA": "empty",
-  "HOUST": "empty",
-  "CSUSHPINSA": "empty",
-  "INDPRO": "empty"
+  "DGS2": "ERROR RuntimeError: curl rc=28 curl: (28) Operation timed out after 45002 milliseconds with 0 bytes ",
+  "DGS10": "ERROR RuntimeError: curl rc=28 curl: (28) Operation timed out after 45001 milliseconds with 0 bytes ",
+  "DFII10": "ok",
+  "T10YIE": "ok",
+  "DTWEXBGS": "ok",
+  "UNRATE": "ok",
+  "ICSA": "ok",
+  "UMCSENT": "ok",
+  "TOTALSA": "ok",
+  "HOUST": "ok",
+  "CSUSHPINSA": "ok",
+  "INDPRO": "ok"
  }
 }

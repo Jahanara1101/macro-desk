@@ -1,5 +1,5 @@
 {
- "built_utc": "2026-10-24 05:24 UTC",
+ "built_utc": "2026-10-24 05:40 UTC",
  "sources": {
   "tradingview_calendar": {
    "US": 11808,
@@ -15,7 +15,7 @@
   },
   "fred": "ok (14/14)",
   "cot": "ok (4)",
-  "options": "ok (8)",
+  "options": "ERROR RuntimeError: CBOE flight chunks not found",
   "walls": "ok (2)",
   "market": "ok (26)",
   "season": "ok (7)",

@@ -1,12 +1,12 @@
 {
- "built_utc": "2026-10-26 17:08 UTC",
+ "built_utc": "2026-10-26 17:24 UTC",
  "sources": {
   "tradingview_calendar": {
    "US": 11776,
    "EU": 2202,
    "GB": 2804,
-   "JP": 2513,
-   "CN": 890,
+   "JP": 2838,
+   "CN": 1046,
    "DE": 2251,
    "CA": 1855,
    "AU": 1843,
